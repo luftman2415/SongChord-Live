@@ -1,6 +1,7 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyNsH9haUN48LHH0DtEyT7S-HlMjIzBlP_CqkI9HSDoNuowKTCbEDXTg1_RHn94S9y-/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwf-QXnrKsfjWdUPCYLuoH5yV0g-OAkCMz645n7N7FwlOwIOBhxzJ1kjiMpwYVPmhqa/exec'; 
 
+let serviceToDelete = null; // Guardará el servicio que vamos a borrar
 let songsDatabase = [];
 let servicesDatabase = [];
 let currentSongList = [];
@@ -63,25 +64,30 @@ function renderServices() {
         return;
     }
     container.innerHTML = servicesDatabase.map((ser, i) => {
-        const get = (key) => {
-            const k = Object.keys(ser).find(k => k.toLowerCase().includes(key.toLowerCase()));
-            return k ? ser[k] : "";
+        const getVal = (keyword) => {
+            const key = Object.keys(ser).find(k => k.toLowerCase().includes(keyword.toLowerCase()));
+            return key ? ser[key] : "";
         };
-        const fechaRaw = get('fecha');
-        const fecha = fechaRaw ? fechaRaw.toString().split('T')[0] : "Pendiente";
-        const nombre = get('nombre') || "Servicio";
-        const lider = get('líder') || get('director') || "Líder";
+
+        const fechaRaw = getVal('fecha');
+        const fechaDisplay = fechaRaw ? fechaRaw.toString().split('T')[0] : "Sin fecha";
+        const nombre = getVal('nombre') || "Servicio";
 
         return `
             <div class="service-card" onclick="showServiceSongs(${i})">
                 <div class="service-date"><i class="far fa-calendar-alt"></i></div>
-                <div class="service-info"><h3>${nombre}</h3><p>${fecha} • Dirige: ${lider}</p></div>
-                <i class="fas fa-chevron-right" style="margin-left:auto; color:#ccc;"></i>
+                <div class="service-info">
+                    <h3>${nombre}</h3>
+                    <p>${fechaDisplay}</p>
+                </div>
+                <!-- BOTÓN ELIMINAR -->
+                <button class="delete-service-btn" onclick="confirmDeleteService(event, ${i})">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
         `;
     }).join('');
 }
-
 // 4. FILTRAR CANCIONES POR SERVICIO
 function showServiceSongs(index) {
     const ser = servicesDatabase[index];
@@ -337,7 +343,68 @@ function setTheme(themeName) {
 
 // Cargar el tema guardado automáticamente al iniciar la App
 // (Añade esta línea dentro de tu window.onload o al final del archivo)
-const savedTheme = localStorage.getItem('userTheme');
-if (savedTheme) {
-    setTheme(savedTheme);
+// --- SISTEMA DE ELIMINACIÓN CORREGIDO ---
+
+// 1. Esta función se activa al tocar el basurero
+function confirmDeleteService(event, index) {
+    event.stopPropagation(); // Evita que se abra el servicio
+    
+    // Guardamos el servicio en la variable antes de preguntar
+    serviceToDelete = servicesDatabase[index]; 
+    
+    if (!serviceToDelete) return;
+
+    // Buscamos el nombre para el mensaje
+    const nombreKey = Object.keys(serviceToDelete).find(k => k.toLowerCase().includes('nombre'));
+    const nombre = serviceToDelete[nombreKey] || "este servicio";
+    
+    document.getElementById('delete-service-info').innerText = `Vas a eliminar "${nombre}". Esta acción no se puede deshacer.`;
+    document.getElementById('delete-confirm-modal').style.display = 'flex';
+}
+
+// 2. Cerramos el modal
+function closeDeleteModal() {
+    document.getElementById('delete-confirm-modal').style.display = 'none';
+    serviceToDelete = null;
+}
+
+// 3. Esta función envía la orden REAL al Excel
+async function executeDelete() {
+    if (!serviceToDelete) {
+        showToast("Error: No hay servicio seleccionado", "error");
+        return;
+    }
+    
+    // GUARDAMOS LOS DATOS antes de cerrar el modal
+    const datosABorrar = serviceToDelete;
+    const nombreKey = Object.keys(datosABorrar).find(k => k.toLowerCase().includes('nombre'));
+    const nombreEnviado = datosABorrar[nombreKey];
+
+    // Ahora sí cerramos la ventana
+    document.getElementById('delete-confirm-modal').style.display = 'none';
+    showToast("Eliminando de la base de datos...", "info");
+
+    const payload = {
+        action: 'delete',
+        nombre: nombreEnviado.toString()
+    };
+
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            body: JSON.stringify(payload)
+        });
+
+        // Como no podemos leer la respuesta por seguridad de Google (no-cors),
+        // avisamos y recargamos la página para ver los cambios
+        showToast("Orden enviada con éxito", "success");
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+        
+    } catch (e) {
+        console.error("Error al eliminar:", e);
+        showToast("Error de conexión", "error");
+    }
 }

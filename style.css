@@ -313,3 +313,28 @@ body.theme-forest .lyrics-container,
 body.theme-ocean .lyrics-container { 
     color: var(--text-dark); 
 }
+
+/* BOTÓN ELIMINAR EN TARJETA */
+.delete-service-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: #cbd5e1; /* Gris suave por defecto */
+    padding: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-service-btn:hover {
+    color: #ef4444; /* Rojo al pasar el mouse */
+    transform: scale(1.2);
+}
+
+/* En modo oscuro el gris es un poco más fuerte */
+body:not(.theme-day) .delete-service-btn {
+    color: #475569;
+}

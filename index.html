@@ -124,6 +124,19 @@
             </div>
         </div>
 
+<!-- MODAL DE CONFIRMACIÓN DE BORRADO -->
+        <div id="delete-confirm-modal" class="modal">
+            <div class="modal-content" style="max-width: 300px; text-align: center;">
+                <div style="font-size: 3rem; color: #ef4444; margin-bottom: 10px;"><i class="fas fa-trash-alt"></i></div>
+                <h3 style="margin-bottom: 10px;">¿Eliminar servicio?</h3>
+                <p id="delete-service-info" style="font-size: 0.85rem; color: #666; margin-bottom: 20px;"></p>
+                <div class="modal-actions">
+                    <button class="cancel-btn" onclick="closeDeleteModal()">No, volver</button>
+                    <button class="save-btn" style="background:#ef4444;" onclick="executeDelete()">Sí, eliminar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- NOTIFICACIONES -->
         <div id="toast-container"></div>
 
