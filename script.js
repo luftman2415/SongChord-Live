@@ -160,11 +160,8 @@ function renderLyrics() {
 
     let processed = text.trim().replace(/\r/g, '').replace(/\n{3,}/g, '\n\n');
 
-    // Procesar etiquetas {comment: Intro}
+   // Solo procesar etiquetas manuales que vengan de Planning o puestas por ti
     processed = processed.replace(/{comment:\s*(.*?)}/gi, '<span class="section-tag">$1</span>');
-    
-    // Detectar etiquetas automáticas SOLO si están en su propia línea y empiezan con Mayúscula
-    processed = processed.replace(/^(Intro|Verso|Coro|Puente|Final|Solo|Interludio|Outro)\b/gm, '<span class="section-tag">$1</span>');
 
     if (currentMode === 'musicos') {
         container.classList.add('musician-mode');
