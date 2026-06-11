@@ -9,6 +9,7 @@ let fontSize = 16;
 let currentTransposition = 0;
 let isScrolling = false;
 let scrollInterval;
+let tempSelectedSongs = []; // Aquí guardaremos las canciones del servicio actual
 
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -92,6 +93,122 @@ async function saveNewService() {
 // MODAL CONTROLS
 function openServiceModal() { document.getElementById('service-modal').style.display = 'flex'; }
 function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
+// --- SISTEMA DE NOTIFICACIONES PERSONALIZADO ---
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-triangle' : 'fa-info-circle');
+    
+    toast.innerHTML = `<i class="fas ${icon}"></i> <span>${message}</span>`;
+    container.appendChild(toast);
+
+    // Desaparecer después de 4 segundos
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
+}
+
+// --- BUSCADOR DE CANCIONES PARA EL MODAL ---
+function searchSongsForModal() {
+    const term = document.getElementById('modal-song-search').value.toLowerCase();
+    const resultsDiv = document.getElementById('modal-search-results');
+    
+    if (term.length < 2) {
+        resultsDiv.style.display = 'none';
+        return;
+    }
+
+    const filtered = songsDatabase.filter(s => 
+        s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term)
+    );
+
+    if (filtered.length > 0) {
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = filtered.map(s => `
+            <div class="modal-search-item" onclick="addSongToService('${s.ID}', '${s.Titulo.replace(/'/g, "\\'")}')">
+                <span>${s.Titulo}</span>
+                <small style="color:#999">${s.Artista}</small>
+            </div>
+        `).join('');
+    } else {
+        resultsDiv.innerHTML = '<p style="padding:10px; font-size:0.7rem; color:#999;">No hay coincidencias</p>';
+    }
+}
+
+// AÑADIR CANCIÓN AL SETLIST TEMPORAL
+function addSongToService(id, titulo) {
+    if (tempSelectedSongs.find(s => s.id === id)) {
+        showToast("La canción ya está en la lista", "error");
+        return;
+    }
+    
+    tempSelectedSongs.push({ id: id, titulo: titulo });
+    document.getElementById('modal-song-search').value = "";
+    document.getElementById('modal-search-results').style.display = 'none';
+    renderSelectedSongs();
+}
+
+// QUITAR CANCIÓN DEL SETLIST
+function removeSongFromService(id) {
+    tempSelectedSongs = tempSelectedSongs.filter(s => s.id !== id);
+    renderSelectedSongs();
+}
+
+// DIBUJAR LAS CANCIONES ELEGIDAS EN EL MODAL
+function renderSelectedSongs() {
+    const list = document.getElementById('selected-songs-list');
+    if (tempSelectedSongs.length === 0) {
+        list.innerHTML = '<p class="empty-msg">No has seleccionado canciones aún.</p>';
+        return;
+    }
+    list.innerHTML = tempSelectedSongs.map(s => `
+        <div class="selected-song-pill">
+            <span>${s.titulo}</span>
+            <i class="fas fa-times" onclick="removeSongFromService('${s.id}')"></i>
+        </div>
+    `).join('');
+}
+
+// ABRIR Y LIMPIAR MODAL
+function openServiceModal() {
+    tempSelectedSongs = [];
+    renderSelectedSongs();
+    document.getElementById('service-modal').style.display = 'flex';
+}
+
+// GUARDAR EL SERVICIO CON LOS IDs SELECCIONADOS
+async function saveNewService() {
+    const name = document.getElementById('new-service-name').value;
+    const date = document.getElementById('new-service-date').value;
+    const leader = document.getElementById('new-service-leader').value;
+
+    if (!name || !date || tempSelectedSongs.length === 0) {
+        showToast("Completa los datos y selecciona al menos una canción", "error");
+        return;
+    }
+
+    // Unimos los IDs por comas automáticamente
+    const idsString = tempSelectedSongs.map(s => s.id).join(', ');
+
+    const newService = { nombre: name, fecha: date, lider: leader, ids: idsString };
+
+    showToast("Guardando servicio en la nube...", "info");
+
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(newService)
+        });
+        showToast("¡Servicio programado con éxito!", "success");
+        setTimeout(() => location.reload(), 1500);
+    } catch (e) { 
+        showToast("Error de conexión", "error");
+    }
+}
 
 // NAVEGACIÓN Y LETRAS (Igual que antes pero optimizado)
 function showServiceSongs(index) {
