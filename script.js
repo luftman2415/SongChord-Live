@@ -5,7 +5,11 @@ let serviceToDelete = null; // Guardará el servicio que vamos a borrar
 let songsDatabase = [];
 let servicesDatabase = [];
 let currentSongList = [];
-let tempSelectedSongs = []; 
+let tempSelectedSongs = [];
+let currentServiceSongs = []; 
+let metronomeInterval = null;
+let isMetronomeSoundEnabled = false;
+let audioCtx = null; 
 let currentSong = null;
 let currentMode = 'musicos'; 
 let fontSize = 16;
@@ -88,20 +92,29 @@ function renderServices() {
         `;
     }).join('');
 }
+
 // 4. FILTRAR CANCIONES POR SERVICIO
 function showServiceSongs(index) {
     const ser = servicesDatabase[index];
-    const idKey = Object.keys(ser).find(k => k.toLowerCase().includes('ids'));
-    let rawIds = ser[idKey] ? ser[idKey].toString() : "";
+    const keyWithIds = Object.keys(ser).find(k => k.toLowerCase().includes('lista de ids'));
+    const rawIds = ser[keyWithIds] ? ser[keyWithIds].toString() : "";
     
-    // Limpieza de IDs
+    // Limpiamos los IDs del texto del Excel
     const idsToFilter = rawIds.replace(/[.\s]/g, ',').split(',').map(id => id.trim()).filter(id => id !== "");
 
-    currentSongList = songsDatabase.filter(song => idsToFilter.includes(song.ID.toString()));
+    // --- CAMBIO CLAVE AQUÍ ---
+    // En lugar de filtrar la base de datos, recorremos TU lista de IDs 
+    // y buscamos cada canción para que mantenga el orden exacto (3, 2, 1...)
+    currentSongList = idsToFilter.map(id => {
+        return songsDatabase.find(song => song.ID === id);
+    }).filter(song => song !== undefined); // Quitamos errores si un ID no existe
 
-    const nombreKey = Object.keys(ser).find(k => k.toLowerCase().includes('nombre'));
-    document.getElementById('list-title').innerText = ser[nombreKey] || "Servicio";
-    document.getElementById('list-subtitle').innerText = "Lista de canciones";
+    // Guardamos la lista de IDs para las flechas en este orden exacto
+    currentServiceSongs = currentSongList.map(s => s.ID); 
+
+    const nombreCol = Object.keys(ser).find(k => k.toLowerCase().includes('nombre'));
+    document.getElementById('list-title').innerText = ser[nombreCol] || "Servicio";
+    document.getElementById('list-subtitle').innerText = "Orden del Servicio";
     
     renderSongList(currentSongList);
     switchView('home-view');
@@ -109,12 +122,16 @@ function showServiceSongs(index) {
 
 function showAllSongs() {
     currentSongList = songsDatabase;
+    
+    // IMPORTANTE: Vaciamos la lista de servicio para que 
+    // las flechas de navegación se oculten en el modo general
+    currentServiceSongs = []; 
+    
     document.getElementById('list-title').innerText = "Repertorio";
     document.getElementById('list-subtitle').innerText = "Todas las canciones";
     renderSongList(currentSongList);
     switchView('home-view');
 }
-
 function renderSongList(songs) {
     const list = document.getElementById('song-list-container');
     if (songs.length === 0) {
@@ -132,26 +149,40 @@ function renderSongList(songs) {
 // 5. VISUALIZADOR
 function openSongByID(id) {
     currentSong = songsDatabase.find(s => s.ID.toString().trim() === id.toString().trim());
-    if(!currentSong) {
-        showToast("Error: No se encontró la canción", "error");
-        return;
-    }
+    if(!currentSong) return;
 
+    // Reinicios básicos
     currentTransposition = 0; 
     fontSize = 16; 
     currentMode = 'musicos';
     
+    // UI - Cabecera
     document.getElementById('btn-musicos').classList.add('active');
     document.getElementById('btn-voces').classList.remove('active');
     document.getElementById('view-title').innerText = currentSong.Titulo;
     document.getElementById('view-artist').innerText = currentSong.Artista;
     document.getElementById('current-key').innerText = currentSong.Tono;
     
-    document.getElementById('lyrics-container').scrollTop = 0;
+    // Reset de Scroll
+    const lyCont = document.getElementById('lyrics-container');
+    if (lyCont) lyCont.scrollTop = 0;
+
+    // Control de Flechas (Solo si entramos por un servicio con más de 1 canción)
+    const nav = document.getElementById('setlist-nav');
+    if (nav) {
+        if (currentServiceSongs.length > 1 && currentServiceSongs.includes(id.toString())) {
+            nav.style.display = 'flex';
+        } else {
+            nav.style.display = 'none';
+        }
+    }
+
     switchView('song-view');
     renderLyrics();
+    
+    // Encendemos el metrónomo
+    startMetronome(currentSong.BPM);
 }
-
 function renderLyrics() {
     if (!currentSong) return;
     const container = document.getElementById('lyrics-container');
@@ -228,7 +259,16 @@ function switchView(viewId) {
     document.getElementById(viewId).classList.add('active');
 }
 function goToDashboard() { switchView('dashboard-view'); }
-function closeSong() { stopAutoScroll(); switchView('home-view'); }
+function closeSong() {
+    // 1. Apagamos el metrónomo si está sonando
+    if(metronomeInterval) clearInterval(metronomeInterval);
+    
+    // 2. Apagamos el scroll automático
+    stopAutoScroll();
+    
+    // 3. Regresamos a la vista de la lista (Home)
+    switchView('home-view');
+}
 
 // 8. UTILIDADES
 function changeFontSize(val) {
@@ -407,4 +447,45 @@ async function executeDelete() {
         console.error("Error al eliminar:", e);
         showToast("Error de conexión", "error");
     }
+}
+
+// --- LÓGICA DE NAVEGACIÓN Y METRÓNOMO ---
+
+function prevSongInSet() {
+    let idx = currentServiceSongs.indexOf(currentSong.ID);
+    if (idx > 0) openSongByID(currentServiceSongs[idx - 1]);
+}
+
+function nextSongInSet() {
+    let idx = currentServiceSongs.indexOf(currentSong.ID);
+    if (idx < currentServiceSongs.length - 1) openSongByID(currentServiceSongs[idx + 1]);
+}
+
+function toggleMetronomeSound() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    isMetronomeSoundEnabled = !isMetronomeSoundEnabled;
+    document.getElementById('metronome-sound-icon').className = isMetronomeSoundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+}
+
+function startMetronome(bpm) {
+    if (metronomeInterval) clearInterval(metronomeInterval);
+    const visual = document.getElementById('metronome-visual');
+    if (!visual || !bpm || bpm == 0) { if(visual) visual.style.display = 'none'; return; }
+    visual.style.display = 'block';
+    const ms = (60 / bpm) * 1000;
+    metronomeInterval = setInterval(() => {
+        visual.classList.add('metronome-pulse');
+        setTimeout(() => visual.classList.remove('metronome-pulse'), 100);
+        if (isMetronomeSoundEnabled && audioCtx) playMetronomeClick();
+    }, ms);
+}
+
+function playMetronomeClick() {
+    const osc = audioCtx.createOscillator(), env = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+    env.gain.setValueAtTime(0, audioCtx.currentTime);
+    env.gain.linearRampToValueAtTime(0.1, audioCtx.currentTime + 0.01);
+    env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(env); env.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
 }
