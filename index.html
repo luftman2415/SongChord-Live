@@ -68,25 +68,10 @@
                     <label>Director / Líder</label>
                     <input type="text" id="new-service-leader" placeholder="Nombre del encargado">
                 </div>
-                
-                <!-- BUSCADOR DE CANCIONES DENTRO DEL MODAL -->
                 <div class="input-group">
-                    <label>Seleccionar Canciones</label>
-                    <div class="modal-search-wrapper">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="modal-song-search" placeholder="Buscar por título o artista..." oninput="searchSongsForModal()">
-                    </div>
-                    <div id="modal-search-results" class="search-results-dropdown"></div>
+                    <label>IDs de canciones (separados por coma)</label>
+                    <input type="text" id="new-service-ids" placeholder="Ej: 1, 5, 12">
                 </div>
-
-                <!-- LISTA DE CANCIONES SELECCIONADAS (SETLIST) -->
-                <div class="selected-songs-area">
-                    <label>Setlist Seleccionado:</label>
-                    <div id="selected-songs-list">
-                        <p class="empty-msg">No has seleccionado canciones aún.</p>
-                    </div>
-                </div>
-
                 <div class="modal-actions">
                     <button class="cancel-btn" onclick="closeServiceModal()">Cancelar</button>
                     <button class="save-btn" onclick="saveNewService()">Guardar Servicio</button>
@@ -94,27 +79,16 @@
             </div>
         </div>
 
-        <!-- CONTENEDOR DE NOTIFICACIONES (TOASTS) -->
-        <div id="toast-container"></div>
-
-        <!-- VISTA 1: LISTA DE CANCIONES (Ya sea por servicio o general) -->
+        <!-- VISTA 1: LISTA DE CANCIONES -->
         <div id="home-view" class="view">
             <header class="header-main song-header">
                 <button class="back-btn" onclick="goToDashboard()"><i class="fas fa-home"></i></button>
                 <div class="header-info">
                     <h2 id="list-title">Repertorio</h2>
-                    <p id="list-subtitle">Cargando detalles...</p>
+                    <p id="list-subtitle">Todas las canciones</p>
                 </div>
             </header>
-
-            <!-- BUSCADOR RESTAURADO -->
-            <div class="search-section">
-                <div class="search-card">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-input" placeholder="Buscar por título o artista...">
-                </div>
-            </div>
-
+            <div class="search-box"><div class="search-wrapper"><i class="fas fa-search"></i><input type="text" id="search-input" placeholder="Buscar por título o artista..."></div></div>
             <div class="song-list" id="song-list-container"></div>
         </div>
 
