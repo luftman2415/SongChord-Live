@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SongChord Live Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- PANTALLA INICIO -->
+        <div id="home-view" class="view active">
+            <header class="header-main">
+                <h1>SongChord <span>Live</span></h1>
+                <p>Ministerio de Alabanza</p>
+            </header>
+
+            <div class="search-section">
+                <input type="text" id="search-input" placeholder="Buscar canción o artista...">
+            </div>
+
+            <div class="song-list" id="song-list-container">
+                <div class="loading">Cargando canciones...</div>
+            </div>
+        </div>
+
+        <!-- PANTALLA CANCIÓN -->
+        <div id="song-view" class="view">
+            <header class="header-main song-header">
+                <button class="back-btn" onclick="closeSong()"><i class="fas fa-arrow-left"></i></button>
+                <div class="header-info">
+                    <h2 id="view-title">Título</h2>
+                    <p id="view-artist">Artista</p>
+                </div>
+            </header>
+
+            <!-- Barra de herramientas en dos filas para que no se amontone -->
+           <div class="toolbar">
+                <!-- Bloque 1: Músicos / Voces -->
+                <div class="tool-group">
+                    <div class="tool-pill-box">
+                        <button id="btn-musicos" class="pill active" onclick="setMode('musicos')">🎸 Músicos</button>
+                        <button id="btn-voces" class="pill" onclick="setMode('voces')">🎤 Voces</button>
+                    </div>
+                </div>
+
+                <!-- Bloque 2: Tono Dinámico -->
+                <div class="tool-group">
+                    <div class="tool-circle-group">
+                        <button class="circle-btn" onclick="changeKey(-1)"><i class="fas fa-minus"></i></button>
+                        <span id="current-key">F</span>
+                        <button class="circle-btn" onclick="changeKey(1)"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+                
+                <!-- Bloque 3: Tamaño de letra -->
+                <div class="tool-group">
+                    <div class="tool-circle-group">
+                        <button class="circle-btn" onclick="changeFontSize(-2)"><i class="fas fa-minus"></i></button>
+                        <span class="size-label"><i class="fas fa-font"></i></span>
+                        <button class="circle-btn" onclick="changeFontSize(2)"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lyrics-container" id="lyrics-container"></div>
+
+            <button class="fab-scroll" id="btn-scroll" onclick="toggleAutoScroll()">
+                <i class="fas fa-play" id="scroll-icon"></i>
+            </button>
+        </div>
+
+        <footer class="footer-text">
+            Copyright © 2026 LUFTMANDMAURICIO
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
