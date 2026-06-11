@@ -12,75 +12,129 @@
 </head>
 <body>
 
+    <!-- PANTALLA DE BIENVENIDA (SPLASH) -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">🎶</div>
+            <h1>SongChord Live Pro</h1>
+            <p id="motivational-quote">"La música es el lenguaje que nos acerca al corazón de Dios."</p>
+            <div class="loader-dots"><span></span><span></span><span></span></div>
+        </div>
+    </div>
+
     <div class="app-container">
         
-        <!-- PANTALLA INICIO -->
-        <div id="home-view" class="view active">
+        <!-- VISTA 0: DASHBOARD -->
+        <div id="dashboard-view" class="view active">
             <header class="header-main">
                 <h1>SongChord <span>Live</span></h1>
-                <p>Ministerio de Alabanza</p>
+                <p>Centro de Gestión de Alabanza</p>
             </header>
+            
+            <div class="content-padding">
+                <div class="welcome-card">
+                    <h2 id="welcome-text">Sincronizando...</h2>
+                    <p>Que tu servicio de hoy sea de bendición para todos.</p>
+                </div>
 
-            <div class="search-section">
-                <input type="text" id="search-input" placeholder="Buscar canción o artista...">
-            </div>
+                <div class="section-header">
+                    <span>PRÓXIMOS SERVICIOS</span>
+                    <button class="add-service-btn" onclick="openServiceModal()"><i class="fas fa-plus"></i> Programar</button>
+                </div>
 
-            <div class="song-list" id="song-list-container">
-                <div class="loading">Cargando canciones...</div>
+                <div id="services-container">
+                    <p class="loading-small">Cargando agenda del ministerio...</p>
+                </div>
+
+                <button class="big-btn" onclick="showAllSongs()">
+                    <i class="fas fa-music"></i> Explorar Repertorio Completo
+                </button>
             </div>
         </div>
 
-        <!-- PANTALLA CANCIÓN -->
+        <!-- FORMULARIO MODAL: NUEVO SERVICIO -->
+        <div id="service-modal" class="modal">
+            <div class="modal-content">
+                <h3>Programar Servicio</h3>
+                <div class="input-group">
+                    <label>Nombre del Servicio</label>
+                    <input type="text" id="new-service-name" placeholder="Ej: Domingo Mañana">
+                </div>
+                <div class="input-group">
+                    <label>Fecha y Hora</label>
+                    <input type="datetime-local" id="new-service-date">
+                </div>
+                <div class="input-group">
+                    <label>Director / Líder</label>
+                    <input type="text" id="new-service-leader" placeholder="Nombre del encargado">
+                </div>
+                
+                <!-- BUSCADOR DE CANCIONES DENTRO DEL MODAL -->
+                <div class="input-group">
+                    <label>Seleccionar Canciones</label>
+                    <div class="modal-search-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="modal-song-search" placeholder="Buscar por título o artista..." oninput="searchSongsForModal()">
+                    </div>
+                    <div id="modal-search-results" class="search-results-dropdown"></div>
+                </div>
+
+                <!-- LISTA DE CANCIONES SELECCIONADAS (SETLIST) -->
+                <div class="selected-songs-area">
+                    <label>Setlist Seleccionado:</label>
+                    <div id="selected-songs-list">
+                        <p class="empty-msg">No has seleccionado canciones aún.</p>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="cancel-btn" onclick="closeServiceModal()">Cancelar</button>
+                    <button class="save-btn" onclick="saveNewService()">Guardar Servicio</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENEDOR DE NOTIFICACIONES (TOASTS) -->
+        <div id="toast-container"></div>
+
+        <!-- VISTA 1: LISTA DE CANCIONES (Ya sea por servicio o general) -->
+        <div id="home-view" class="view">
+            <header class="header-main song-header">
+                <button class="back-btn" onclick="goToDashboard()"><i class="fas fa-home"></i></button>
+                <div class="header-info">
+                    <h2 id="list-title">Repertorio</h2>
+                    <p id="list-subtitle">Cargando detalles...</p>
+                </div>
+            </header>
+
+            <!-- BUSCADOR RESTAURADO -->
+            <div class="search-section">
+                <div class="search-card">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Buscar por título o artista...">
+                </div>
+            </div>
+
+            <div class="song-list" id="song-list-container"></div>
+        </div>
+
+        <!-- VISTA 2: VISUALIZADOR -->
         <div id="song-view" class="view">
             <header class="header-main song-header">
                 <button class="back-btn" onclick="closeSong()"><i class="fas fa-arrow-left"></i></button>
-                <div class="header-info">
-                    <h2 id="view-title">Título</h2>
-                    <p id="view-artist">Artista</p>
-                </div>
+                <div class="header-info"><h2 id="view-title">Título</h2><p id="view-artist">Artista</p></div>
             </header>
-
-            <!-- Barra de herramientas en dos filas para que no se amontone -->
-           <div class="toolbar">
-                <!-- Bloque 1: Músicos / Voces -->
-                <div class="tool-group">
-                    <div class="tool-pill-box">
-                        <button id="btn-musicos" class="pill active" onclick="setMode('musicos')">🎸 Músicos</button>
-                        <button id="btn-voces" class="pill" onclick="setMode('voces')">🎤 Voces</button>
-                    </div>
-                </div>
-
-                <!-- Bloque 2: Tono Dinámico -->
-                <div class="tool-group">
-                    <div class="tool-circle-group">
-                        <button class="circle-btn" onclick="changeKey(-1)"><i class="fas fa-minus"></i></button>
-                        <span id="current-key">F</span>
-                        <button class="circle-btn" onclick="changeKey(1)"><i class="fas fa-plus"></i></button>
-                    </div>
-                </div>
-                
-                <!-- Bloque 3: Tamaño de letra -->
-                <div class="tool-group">
-                    <div class="tool-circle-group">
-                        <button class="circle-btn" onclick="changeFontSize(-2)"><i class="fas fa-minus"></i></button>
-                        <span class="size-label"><i class="fas fa-font"></i></span>
-                        <button class="circle-btn" onclick="changeFontSize(2)"><i class="fas fa-plus"></i></button>
-                    </div>
-                </div>
+            <div class="toolbar">
+                <div class="tool-group"><div class="tool-pill-box"><button id="btn-musicos" class="pill active" onclick="setMode('musicos')">🎸 Músicos</button><button id="btn-voces" class="pill" onclick="setMode('voces')">🎤 Voces</button></div></div>
+                <div class="tool-group"><div class="tool-circle-group"><button class="circle-btn" onclick="changeKey(-1)"><i class="fas fa-minus"></i></button><span id="current-key">F</span><button class="circle-btn" onclick="changeKey(1)"><i class="fas fa-plus"></i></button></div></div>
+                <div class="tool-group"><div class="tool-circle-group"><button class="circle-btn" onclick="changeFontSize(-2)"><i class="fas fa-minus"></i></button><span class="size-label"><i class="fas fa-font"></i></span><button class="circle-btn" onclick="changeFontSize(2)"><i class="fas fa-plus"></i></button></div></div>
             </div>
-
             <div class="lyrics-container" id="lyrics-container"></div>
-
-            <button class="fab-scroll" id="btn-scroll" onclick="toggleAutoScroll()">
-                <i class="fas fa-play" id="scroll-icon"></i>
-            </button>
+            <button class="fab-scroll" id="btn-scroll" onclick="toggleAutoScroll()"><i class="fas fa-play" id="scroll-icon"></i></button>
         </div>
 
-        <footer class="footer-text">
-            Copyright © 2026 LUFTMANDMAURICIO
-        </footer>
+        <footer class="footer-text">Copyright © 2026 LUFTMANDMAURICIO</footer>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
