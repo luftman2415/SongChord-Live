@@ -31,7 +31,7 @@ async function initApp() {
         
         if(data.bienvenida) document.getElementById('welcome-text').innerText = data.bienvenida;
 
-        // Mapeo de canciones (Hoja 1)
+        // Mapeo flexible de canciones (Hoja 1)
         songsDatabase = data.canciones.map(item => {
             const find = (key) => {
                 const k = Object.keys(item).find(k => k.toLowerCase().replace(/_/g, ' ').trim().includes(key.toLowerCase().trim()));
@@ -82,21 +82,16 @@ function renderServices() {
     }).join('');
 }
 
-// 4. FILTRAR CANCIONES POR SERVICIO (CORREGIDO)
+// 4. FILTRAR CANCIONES POR SERVICIO
 function showServiceSongs(index) {
     const ser = servicesDatabase[index];
+    const idKey = Object.keys(ser).find(k => k.toLowerCase().includes('ids'));
+    let rawIds = ser[idKey] ? ser[idKey].toString() : "";
     
-    // Buscamos la columna de los IDs en la Hoja 2
-    const idColumnKey = Object.keys(ser).find(k => k.toLowerCase().includes('lista de ids'));
-    const rawIds = ser[idColumnKey] ? ser[idColumnKey].toString() : "";
-    
-    // Limpiamos los IDs del servicio
-    const idsToFilter = rawIds.split(',').map(id => id.trim()).filter(id => id !== "");
+    // Limpieza de IDs
+    const idsToFilter = rawIds.replace(/[.\s]/g, ',').split(',').map(id => id.trim()).filter(id => id !== "");
 
-    // Buscamos en el repertorio (Hoja 1)
-    currentSongList = songsDatabase.filter(song => {
-        return idsToFilter.includes(song.ID);
-    });
+    currentSongList = songsDatabase.filter(song => idsToFilter.includes(song.ID.toString()));
 
     const nombreKey = Object.keys(ser).find(k => k.toLowerCase().includes('nombre'));
     document.getElementById('list-title').innerText = ser[nombreKey] || "Servicio";
@@ -105,6 +100,7 @@ function showServiceSongs(index) {
     renderSongList(currentSongList);
     switchView('home-view');
 }
+
 function showAllSongs() {
     currentSongList = songsDatabase;
     document.getElementById('list-title').innerText = "Repertorio";
@@ -129,17 +125,23 @@ function renderSongList(songs) {
 
 // 5. VISUALIZADOR
 function openSongByID(id) {
-    currentSong = songsDatabase.find(s => s.ID === id.toString());
-    if(!currentSong) return showToast("Error al abrir canción", "error");
+    currentSong = songsDatabase.find(s => s.ID.toString().trim() === id.toString().trim());
+    if(!currentSong) {
+        showToast("Error: No se encontró la canción", "error");
+        return;
+    }
 
-    currentTransposition = 0; fontSize = 16; currentMode = 'musicos';
+    currentTransposition = 0; 
+    fontSize = 16; 
+    currentMode = 'musicos';
+    
     document.getElementById('btn-musicos').classList.add('active');
     document.getElementById('btn-voces').classList.remove('active');
     document.getElementById('view-title').innerText = currentSong.Titulo;
     document.getElementById('view-artist').innerText = currentSong.Artista;
     document.getElementById('current-key').innerText = currentSong.Tono;
-    document.getElementById('lyrics-container').scrollTop = 0;
     
+    document.getElementById('lyrics-container').scrollTop = 0;
     switchView('song-view');
     renderLyrics();
 }
@@ -149,37 +151,75 @@ function renderLyrics() {
     const container = document.getElementById('lyrics-container');
     container.style.fontSize = fontSize + 'px';
     
-    // Elegimos la columna correcta de la Hoja 1
     let text = (currentMode === 'musicos') ? currentSong.Letra_Musicos : currentSong.Letra_Voces;
     
     if (!text || text.trim() === "") {
-        container.innerHTML = `<p style="padding:20px; color:orange;">No hay contenido en ${currentMode} para esta canción.</p>`;
+        container.innerHTML = `<p style="padding:20px; color:orange;">No hay contenido en ${currentMode}.</p>`;
         return;
     }
 
-    // Limpieza de saltos de línea y basura de Excel
     let processed = text.trim().replace(/\r/g, '').replace(/\n{3,}/g, '\n\n');
 
-    // Procesar etiquetas {comment: Intro} o palabras sueltas
+    // Procesar etiquetas {comment: Intro}
     processed = processed.replace(/{comment:\s*(.*?)}/gi, '<span class="section-tag">$1</span>');
-    processed = processed.replace(/^(Intro|Verso|Coro|Puente|Final|Solo|Interludio|Outro)\b/gim, '<span class="section-tag">$1</span>');
+    
+    // Detectar etiquetas automáticas SOLO si están en su propia línea y empiezan con Mayúscula
+    processed = processed.replace(/^(Intro|Verso|Coro|Puente|Final|Solo|Interludio|Outro)\b/gm, '<span class="section-tag">$1</span>');
 
     if (currentMode === 'musicos') {
         container.classList.add('musician-mode');
-        // Procesamos acordes [F] para que floten
         processed = processed.replace(/\[([^\]]+)\]/g, (m, chord) => {
             const newChord = transposeChord(chord, currentTransposition);
             return `<span class="chord-wrapper" data-chord="${newChord}">${newChord}</span>`;
         });
     } else {
         container.classList.remove('musician-mode');
-        // En modo voces limpiamos los corchetes para que no estorben
         processed = processed.replace(/\[.*?\]/g, '');
     }
 
     container.innerHTML = processed;
 }
-// 6. NAVEGACIÓN
+
+// 6. FUNCIONES DE TRANSPOSICIÓN
+function transposeChord(chord, steps) {
+    if (steps === 0) return chord;
+    const normalize = (c) => c.replace('Db','C#').replace('Eb','D#').replace('Gb','F#').replace('Ab','G#').replace('Bb','A#');
+    return chord.replace(/[A-G][#b]?/g, (match) => {
+        let index = scale.indexOf(normalize(match));
+        if (index === -1) return match;
+        let newIndex = (index + steps) % 12;
+        if (newIndex < 0) newIndex += 12;
+        return scale[newIndex];
+    });
+}
+
+function changeKey(val) {
+    currentTransposition += val;
+    let tonoOriginal = currentSong.Tono || "C";
+    const normalize = (c) => c.replace('Db','C#').replace('Eb','D#').replace('Gb','F#').replace('Ab','G#').replace('Bb','A#');
+    let partes = tonoOriginal.match(/^([A-G][#b]?)(.*)/);
+    
+    if (partes) {
+        let notaBase = partes[1];
+        let calidad = partes[2];
+        let indexBase = scale.indexOf(normalize(notaBase));
+        if (indexBase !== -1) {
+            let nuevoIndex = (indexBase + currentTransposition) % 12;
+            if (nuevoIndex < 0) nuevoIndex += 12;
+            document.getElementById('current-key').innerText = scale[nuevoIndex] + calidad;
+        }
+    }
+    renderLyrics();
+}
+
+// 7. NAVEGACIÓN Y MODOS
+function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('btn-musicos').classList.toggle('active', mode === 'musicos');
+    document.getElementById('btn-voces').classList.toggle('active', mode === 'voces');
+    renderLyrics();
+}
+
 function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
@@ -187,17 +227,37 @@ function switchView(viewId) {
 function goToDashboard() { switchView('dashboard-view'); }
 function closeSong() { stopAutoScroll(); switchView('home-view'); }
 
-// --- FUNCIÓN PARA CAMBIAR ENTRE MÚSICOS Y VOCES ---
-function setMode(mode) {
-    currentMode = mode;
-    // Actualizamos cuál botón se ve azul
-    document.getElementById('btn-musicos').classList.toggle('active', mode === 'musicos');
-    document.getElementById('btn-voces').classList.toggle('active', mode === 'voces');
-    // Volvemos a dibujar la letra
+// 8. UTILIDADES
+function changeFontSize(val) {
+    fontSize += val;
+    if (fontSize < 10) fontSize = 10;
     renderLyrics();
 }
 
-// 7. MODAL & GUARDADO
+function toggleAutoScroll() { isScrolling ? stopAutoScroll() : startAutoScroll(); }
+function startAutoScroll() {
+    isScrolling = true; document.getElementById('scroll-icon').className = 'fas fa-pause';
+    scrollInterval = setInterval(() => {
+        const container = document.getElementById('lyrics-container');
+        if (container) {
+            container.scrollBy(0, 1);
+            if (Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight) stopAutoScroll();
+        }
+    }, 50);
+}
+function stopAutoScroll() { isScrolling = false; document.getElementById('scroll-icon').className = 'fas fa-play'; clearInterval(scrollInterval); }
+
+function showToast(msg, type) {
+    const container = document.getElementById('toast-container');
+    if(!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+}
+
+// 9. MODAL & GUARDADO
 function openServiceModal() { tempSelectedSongs = []; renderSelectedSongs(); document.getElementById('service-modal').style.display = 'flex'; }
 function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
 
@@ -240,64 +300,7 @@ async function saveNewService() {
     } catch (e) { showToast("Error al guardar", "error"); }
 }
 
-// 8. UTILIDADES
-function changeKey(val) {
-    // 1. Cambiamos el valor numérico interno
-    currentTransposition += val;
-    
-    // 2. Calculamos el nuevo nombre de la nota para el botón
-    let tonoOrig = currentSong.Tono || "C";
-    const normalize = (c) => c.replace('Db','C#').replace('Eb','D#').replace('Gb','F#').replace('Ab','G#').replace('Bb','A#');
-    
-    let indexBase = scale.indexOf(normalize(tonoOrig));
-    if (indexBase !== -1) {
-        let newIdx = (indexBase + currentTransposition) % 12;
-        if (newIdx < 0) newIdx += 12;
-        
-        // ESTA LÍNEA es la que actualiza el texto del botón (ej: de Em a Fm)
-        document.getElementById('current-key').innerText = scale[newIdx];
-    }
-    
-    // 3. Redibujamos la letra con los nuevos acordes
-    renderLyrics();
-}
-
-function changeFontSize(val) { fontSize += val; if(fontSize < 10) fontSize=10; renderLyrics(); }
-function transposeChord(chord, steps) {
-    if (steps === 0) return chord;
-    const normalize = (c) => c.replace('Db','C#').replace('Eb','D#').replace('Gb','F#').replace('Ab','G#').replace('Bb','A#');
-    return chord.replace(/[A-G][#b]?/g, (match) => {
-        let index = scale.indexOf(normalize(match));
-        if (index === -1) return match;
-        let newIndex = (index + steps) % 12;
-        if (newIndex < 0) newIndex += 12;
-        return scale[newIndex];
-    });
-}
-function toggleAutoScroll() { isScrolling ? stopAutoScroll() : startAutoScroll(); }
-function startAutoScroll() {
-    isScrolling = true; document.getElementById('scroll-icon').className = 'fas fa-pause';
-    scrollInterval = setInterval(() => {
-        const container = document.getElementById('lyrics-container');
-        if (container) {
-            container.scrollBy(0, 1);
-            if (Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight) stopAutoScroll();
-        }
-    }, 50);
-}
-function stopAutoScroll() { isScrolling = false; document.getElementById('scroll-icon').className = 'fas fa-play'; clearInterval(scrollInterval); }
-
-function showToast(msg, type) {
-    const container = document.getElementById('toast-container');
-    if(!container) return;
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<span>${msg}</span>`;
-    container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
-}
-
-// Buscador principal
+// 10. BUSCADOR PRINCIPAL
 document.getElementById('search-input').oninput = (e) => {
     const term = e.target.value.toLowerCase();
     const filtered = currentSongList.filter(s => s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term));
