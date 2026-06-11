@@ -134,3 +134,182 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
 .footer-text { padding: 15px; text-align: center; font-size: 0.7rem; color: #999; font-weight: 700; background: white; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
 .fab-scroll { position: absolute; bottom: 85px; right: 20px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; border-radius: 18px; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4); cursor: pointer; z-index: 100; }
 .loading-small { text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px; }
+
+/* --- ESTILOS DE PERSONALIZACIÓN --- */
+
+/* Botón de engrane en el cabezal */
+.settings-open-btn {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(255,255,255,0.2); border: none;
+    color: white; width: 35px; height: 35px; border-radius: 50%;
+    cursor: pointer; font-size: 1rem;
+}
+
+/* Rejilla de temas */
+.theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 10px; }
+.theme-option { 
+    background: #f8fafc; padding: 10px; border-radius: 12px; 
+    text-align: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s;
+}
+.theme-option.active { border-color: var(--primary); background: #eef2ff; }
+.theme-option span { font-size: 0.75rem; font-weight: 700; color: #444; }
+
+.theme-preview { width: 100%; height: 40px; border-radius: 8px; margin-bottom: 5px; }
+.theme-preview.day { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+.theme-preview.night { background: linear-gradient(135deg, #111827, #374151); }
+.theme-preview.forest { background: linear-gradient(135deg, #064e3b, #065f46); }
+.theme-preview.ocean { background: linear-gradient(135deg, #1e3a8a, #1e40af); }
+
+/* --- DEFINICIÓN DE LOS TEMAS (COLORES Y CONTRASTE) --- */
+
+/* MODO NOCHE (NIGHT) */
+body.theme-night { 
+    --bg-light: #020617; 
+    --text-dark: #f1f5f9; 
+    --text-muted: #94a3b8;
+    --blob-1: #1e1b4b; 
+    --blob-2: #0f172a; 
+    --glass-bg: rgba(15, 23, 42, 0.85); 
+    --primary: #818cf8;
+}
+body.theme-night .header-main { background: linear-gradient(135deg, #1e1b4b, #312e81); }
+body.theme-night .song-card, body.theme-night .welcome-card, body.theme-night .service-card, body.theme-night .search-card { 
+    background: #1e293b; border-color: #334155; 
+}
+body.theme-night .song-card h3 { color: #f8fafc; }
+body.theme-night .song-card p { color: #94a3b8; }
+body.theme-night .key-badge { background: #312e81; color: #c7d2fe; }
+
+/* MODO BOSQUE (FOREST) */
+body.theme-forest { 
+    --bg-light: #022c22; 
+    --text-dark: #f0fdf4; 
+    --text-muted: #a7f3d0;
+    --blob-1: #064e3b; 
+    --blob-2: #065f46; 
+    --glass-bg: rgba(2, 44, 34, 0.85); 
+    --primary: #34d399;
+}
+body.theme-forest .header-main { background: linear-gradient(135deg, #064e3b, #059669); }
+body.theme-forest .song-card, body.theme-forest .welcome-card, body.theme-forest .service-card, body.theme-forest .search-card { 
+    background: #064e3b; border-color: #065f46; 
+}
+body.theme-forest .song-card h3 { color: #f0fdf4; }
+body.theme-forest .song-card p { color: #a7f3d0; }
+body.theme-forest .key-badge { background: #065f46; color: #6ee7b7; }
+body.theme-forest .pill.active, body.theme-forest .fab-scroll, body.theme-forest .service-date { background: #059669; }
+
+/* MODO OCÉANO (OCEAN) */
+body.theme-ocean { 
+    --bg-light: #0c4a6e; 
+    --text-dark: #f0f9ff; 
+    --text-muted: #bae6fd;
+    --blob-1: #075985; 
+    --blob-2: #0369a1; 
+    --glass-bg: rgba(12, 74, 110, 0.85); 
+    --primary: #38bdf8;
+}
+body.theme-ocean .header-main { background: linear-gradient(135deg, #075985, #0ea5e9); }
+body.theme-ocean .song-card, body.theme-ocean .welcome-card, body.theme-ocean .service-card, body.theme-ocean .search-card { 
+    background: #075985; border-color: #0369a1; 
+}
+body.theme-ocean .song-card h3 { color: #f0f9ff; }
+body.theme-ocean .song-card p { color: #bae6fd; }
+body.theme-ocean .key-badge { background: #0369a1; color: #7dd3fc; }
+body.theme-ocean .pill.active, body.theme-ocean .fab-scroll, body.theme-ocean .service-date { background: #0ea5e9; }
+
+/* --- AJUSTES DE VISIBILIDAD POR TEMA (MODAL, BUSCADOR Y MENSAJES) --- */
+
+/* 1. MODO DÍA (Aseguramos claridad total) */
+body.theme-day .modal-content, 
+body:not([class*="theme-"]) .modal-content { 
+    background: white !important; 
+    color: #1e293b !important; 
+}
+body.theme-day .input-group input, 
+body:not([class*="theme-"]) .input-group input { 
+    background: white !important; 
+    color: #1e293b !important; 
+    border: 1px solid #ddd !important;
+}
+body.theme-day .modal-search-results, 
+body:not([class*="theme-"]) .modal-search-results { 
+    background: white !important; 
+}
+body.theme-day .modal-search-item, 
+body:not([class*="theme-"]) .modal-search-item { 
+    color: #1e293b !important;
+    border-bottom: 1px solid #eee !important;
+}
+
+/* 2. TEMAS OSCUROS (Noche, Bosque, Océano) */
+body.theme-night, body.theme-forest, body.theme-ocean {
+    --modal-bg: #1e293b;
+    --input-bg: #0f172a;
+    --text-white: #f1f5f9;
+    --border-dark: #334155;
+}
+
+body.theme-night .modal-content, 
+body.theme-forest .modal-content, 
+body.theme-ocean .modal-content { 
+    background: var(--modal-bg) !important; 
+    color: var(--text-white) !important; 
+}
+
+body.theme-night .input-group input, 
+body.theme-forest .input-group input, 
+body.theme-ocean .input-group input { 
+    background: var(--input-bg) !important; 
+    color: white !important; 
+    border-color: var(--border-dark) !important; 
+}
+
+/* ESTO ARREGLA LA LISTA DE CANCIONES INVISIBLE EN EL BUSCADOR */
+body.theme-night .modal-search-results, 
+body.theme-forest .modal-search-results, 
+body.theme-ocean .modal-search-results { 
+    background: var(--input-bg) !important; 
+    border: 1px solid var(--border-dark) !important;
+}
+
+body.theme-night .modal-search-item, 
+body.theme-forest .modal-search-item, 
+body.theme-ocean .modal-search-item { 
+    color: white !important; 
+    border-bottom: 1px solid var(--modal-bg) !important;
+}
+
+body.theme-night .modal-search-item small, 
+body.theme-forest .modal-search-item small, 
+body.theme-ocean .modal-search-item small { 
+    color: var(--text-muted) !important; 
+}
+
+body.theme-night .selected-songs-area, 
+body.theme-forest .selected-songs-area, 
+body.theme-ocean .selected-songs-area { 
+    background: rgba(0, 0, 0, 0.3) !important; 
+}
+
+body.theme-night .selected-song-pill, 
+body.theme-forest .selected-song-pill, 
+body.theme-ocean .selected-song-pill { 
+    background: #334155 !important; 
+    color: white !important; 
+}
+
+/* 3. MENSAJES DEL SISTEMA (TOASTS) */
+.toast { 
+    background: #ffffff !important; 
+    color: #1e293b !important; 
+    border-left: 5px solid var(--primary) !important;
+}
+.toast span { color: #1e293b !important; }
+
+/* 4. ARREGLO DE LETRAS EN CANCIONES */
+body.theme-night .lyrics-container, 
+body.theme-forest .lyrics-container, 
+body.theme-ocean .lyrics-container { 
+    color: var(--text-dark); 
+}

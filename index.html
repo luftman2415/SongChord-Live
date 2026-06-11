@@ -27,6 +27,7 @@
         <div id="dashboard-view" class="view active">
             <header class="header-main">
                 <h1>SongChord <span>Live</span></h1>
+                <button class="settings-open-btn" onclick="openSettingsModal()"><i class="fas fa-cog"></i></button>
                 <p>Centro de Gestión de Alabanza</p>
             </header>
             
@@ -88,6 +89,37 @@
                 <div class="modal-actions">
                     <button class="cancel-btn" onclick="closeServiceModal()">Cancelar</button>
                     <button class="save-btn" onclick="saveNewService()">Guardar Servicio</button>
+                </div>
+            </div>
+        </div>
+
+<!-- MODAL DE AJUSTES VISUALES -->
+        <div id="settings-modal" class="modal">
+            <div class="modal-content">
+                <h3>Personalización</h3>
+                <p style="font-size: 0.8rem; color: #666; margin-bottom: 15px;">Elige el ambiente visual que más te guste:</p>
+                
+                <div class="theme-grid">
+                    <div class="theme-option active" onclick="setTheme('day')" id="theme-day">
+                        <div class="theme-preview day"></div>
+                        <span>Modo Día</span>
+                    </div>
+                    <div class="theme-option" onclick="setTheme('night')" id="theme-night">
+                        <div class="theme-preview night"></div>
+                        <span>Modo Noche</span>
+                    </div>
+                    <div class="theme-option" onclick="setTheme('forest')" id="theme-forest">
+                        <div class="theme-preview forest"></div>
+                        <span>Bosque</span>
+                    </div>
+                    <div class="theme-option" onclick="setTheme('ocean')" id="theme-ocean">
+                        <div class="theme-preview ocean"></div>
+                        <span>Océano</span>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="save-btn" onclick="closeSettingsModal()">Aplicar y Cerrar</button>
                 </div>
             </div>
         </div>

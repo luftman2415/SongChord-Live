@@ -303,3 +303,41 @@ document.getElementById('search-input').oninput = (e) => {
     const filtered = currentSongList.filter(s => s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term));
     renderSongList(filtered);
 };
+
+// --- FUNCIONES DE AJUSTES VISUALES ---
+
+function openSettingsModal() {
+    document.getElementById('settings-modal').style.display = 'flex';
+}
+
+function closeSettingsModal() {
+    document.getElementById('settings-modal').style.display = 'none';
+}
+
+function setTheme(themeName) {
+    // 1. Quitamos todos los temas anteriores del body
+    document.body.classList.remove('theme-night', 'theme-forest', 'theme-ocean');
+    
+    // 2. Quitamos la marca de "activo" de todos los botones del modal
+    document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+    
+    // 3. Aplicamos el nuevo tema si no es el de por defecto (day)
+    if (themeName !== 'day') {
+        document.body.classList.add('theme-' + themeName);
+    }
+    
+    // 4. Marcamos el botón seleccionado como activo
+    document.getElementById('theme-' + themeName).classList.add('active');
+    
+    // 5. Guardamos la preferencia en el navegador para que no se borre al recargar
+    localStorage.setItem('userTheme', themeName);
+    
+    showToast("Tema " + themeName + " aplicado", "info");
+}
+
+// Cargar el tema guardado automáticamente al iniciar la App
+// (Añade esta línea dentro de tu window.onload o al final del archivo)
+const savedTheme = localStorage.getItem('userTheme');
+if (savedTheme) {
+    setTheme(savedTheme);
+}
