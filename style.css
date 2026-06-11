@@ -3,30 +3,21 @@
     --weaver-gradient: linear-gradient(135deg, #4f46e5, #7c3aed);
     --bg-light: #f3f4f6;
     --text-dark: #1e293b;
-    --text-muted: #6b7280;
-    
-    /* Colores para orbes decorativos */
+    --text-muted: #64748b;
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.5);
     --blob-1: #c4b5fd; 
     --blob-2: #93c5fd; 
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.5);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
 body {
-    font-family: 'Inter', sans-serif; 
-    background-color: var(--bg-light); 
-    color: var(--text-dark);
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
+    font-family: 'Inter', sans-serif; background-color: var(--bg-light); color: var(--text-dark);
+    margin: 0; height: 100vh; display: flex; justify-content: center; position: relative; overflow: hidden;
 }
 
-/* Orbes animados de fondo */
+/* Orbes animados */
 body::before, body::after {
     content: ''; position: fixed; border-radius: 50%; filter: blur(90px); z-index: -1; opacity: 0.7;
     animation: float 20s infinite alternate ease-in-out;
@@ -34,25 +25,12 @@ body::before, body::after {
 body::before { width: 450px; height: 450px; background: var(--blob-1); top: -100px; left: -100px; }
 body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -150px; right: -150px; animation-delay: -10s; }
 
-@keyframes float {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(60px, 60px) scale(1.1); }
-}
+@keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(60px, 60px) scale(1.1); } }
 
-/* Este es el contenedor principal que ahora tiene efecto de cristal */
 .app-container {
-    width: 100%; 
-    max-width: 500px; 
-    height: 100%;
-    background: var(--glass-bg); 
-    backdrop-filter: blur(20px); 
-    -webkit-backdrop-filter: blur(20px);
-    display: flex; 
-    flex-direction: column; 
-    position: relative;
-    border-left: 1px solid var(--glass-border);
-    border-right: 1px solid var(--glass-border);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+    width: 100%; max-width: 500px; height: 100%; background: var(--glass-bg); 
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    display: flex; flex-direction: column; position: relative; border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border);
 }
 
 .view { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -60,301 +38,99 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
 
 /* CABEZALES */
 .header-main {
-    background: var(--weaver-gradient); color: white;
-    padding: 20px 15px; text-align: center; border-radius: 0 0 20px 20px;
+    background: var(--weaver-gradient); color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 25px 25px; flex-shrink: 0;
 }
-.header-main h1 { font-size: 1.6rem; font-weight: 900; }
-.header-main p { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; }
+.header-main h1 { font-size: 1.7rem; font-weight: 900; margin: 0; }
+.header-main h1 span { font-weight: 400; opacity: 0.8; }
+.header-main p { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin: 4px 0 0; }
 
-.song-header { display: flex; align-items: center; justify-content: center; position: relative; padding: 15px; }
-.back-btn { position: absolute; left: 15px; background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; }
-.header-info h2 { font-size: 1.1rem; font-weight: 800; }
-.header-info p { font-size: 0.75rem; opacity: 0.8; }
+.song-header { display: flex; align-items: center; justify-content: center; position: relative; padding: 20px; }
+.back-btn { position: absolute; left: 15px; background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
 
-/* --- BUSCADOR Y LISTA DE CANCIONES (RESTAURADO) --- */
-.search-section { 
-    padding: 15px 20px; 
-}
-
-/* Esta es la tarjeta blanca que envuelve la lupa y el buscador */
-.search-card {
-    background: white; 
-    border-radius: 12px; 
-    padding: 10px 15px;
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    border: 1px solid var(--glass-border);
-}
-
-.search-card i { 
-    color: var(--primary); 
-    font-size: 1rem; 
-}
-
-.search-card input { 
-    width: 100%; 
-    border: none; 
-    outline: none; 
-    font-size: 1rem; 
-    background: transparent;
-    font-family: inherit;
-    color: var(--text-dark);
-}
-
-/* Estilo de las tarjetas de canciones en la lista */
-.song-list { 
-    flex: 1; 
-    overflow-y: auto; 
-    padding: 0 20px 20px; 
-}
-
-.song-card { 
-    background: white; 
-    padding: 15px; 
-    border-radius: 15px; 
-    margin-bottom: 10px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    border: 1px solid rgba(0,0,0,0.03); 
-    cursor: pointer; 
-    transition: 0.2s;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-}
-
-.song-card:active { 
-    transform: scale(0.98); 
-    background: #f9fafb; 
-}
-
-/* TOOLBAR SIMPLE (Sin el switch que estorba) */
-/* BARRA DE HERRAMIENTAS UNIFICADA */
-.toolbar { 
-    padding: 12px 5px; 
-    background: #fff; 
-    border-bottom: 1px solid #f1f5f9; 
-    display: flex; 
-    justify-content: space-around; 
-    align-items: center;
-}
-
-.tool-group { display: flex; align-items: center; }
-
-.tool-pill-box { background: #f1f5f9; padding: 3px; border-radius: 12px; display: flex; }
-
-.pill { border: none; background: none; padding: 8px 12px; border-radius: 10px; font-weight: 700; color: #666; cursor: pointer; font-size: 0.8rem; }
-
-.pill.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-
-/* CONTROLES CIRCULARES */
-.tool-circle-group { display: flex; align-items: center; background: #f1f5f9; border-radius: 30px; padding: 3px; gap: 5px; }
-
-.circle-btn {
-    width: 30px; height: 30px; border-radius: 50%; border: none; background: white;
-    color: var(--primary); font-weight: 900; cursor: pointer; 
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.circle-btn:active { transform: scale(0.9); }
-
-#current-key { font-weight: 900; color: var(--primary); min-width: 25px; text-align: center; font-size: 0.85rem; }
-
-.size-label { color: var(--primary); font-size: 0.75rem; min-width: 20px; text-align: center; opacity: 0.6; }
-
-/* LETRAS */
-/* Interlineado ajustado y sin márgenes extra */
-/* 1. Interlineado equilibrado */
-/* Contenedor base */
-.lyrics-container {
-    flex: 1; 
-    overflow-y: auto; 
-    padding: 10px 25px 80px; 
-    font-family: 'Fira Code', monospace; 
-    line-height: 2.8; /* Interlineado para músicos */
-    white-space: pre-wrap;
-}
-
-/* Modo Voces: Interlineado mucho más cerrado porque no hay acordes flotando */
-/* Contenedor de letra: Espaciado profesional y fijo */
-.lyrics-container {
-    flex: 1; 
-    overflow-y: auto; 
-    padding: 20px 25px 80px; 
-    font-family: 'Fira Code', monospace; 
-    line-height: 2.2; /* Interlineado estándar para lectura */
-    white-space: pre-wrap;
-}
-
-/* Modo Músicos: Espacio extra para los acordes */
-.lyrics-container.musician-mode {
-    line-height: 2.8; 
-}
-
-/* Solo se aplica estilo azul a etiquetas manuales {comment: } */
-.section-tag {
-    display: block; 
-    color: var(--primary); 
-    font-family: 'Inter', sans-serif;
-    font-weight: 800; 
-    font-size: 1rem; 
-    margin-top: 15px;
-    margin-bottom: 5px;
-}
-
-/* Acordes: Posición fija para evitar amontonamiento */
-.chord-wrapper { 
-    position: relative; 
-    display: inline-block; 
-    color: transparent; 
-    font-size: 0.82em; 
-}
-
-.chord-wrapper::before {
-    content: attr(data-chord); 
-    position: absolute; 
-    top: -1.2em; /* Altura fija para que no se pegue a la letra */
-    left: 0; 
-    color: var(--primary); 
-    visibility: visible; 
-    font-weight: 800; 
-    font-family: 'Inter', sans-serif; 
-    white-space: nowrap;
-}
-
-/* FOOTER Y FAB */
-.footer-text { padding: 10px; text-align: center; font-size: 0.7rem; color: #999; font-weight: 700; background: #fff; border-top: 1px solid #eee; }
-.fab-scroll { position: absolute; bottom: 60px; right: 20px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; border-radius: 50%; box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer; }
-
-/* NUEVOS ESTILOS DASHBOARD */
-.content-padding { padding: 20px; }
-
-.section-title { 
-    font-weight: 800; color: var(--primary); 
-    text-transform: uppercase; font-size: 0.8rem; 
-    margin-bottom: 15px; letter-spacing: 1px;
-}
-
-.service-card {
-    background: white; padding: 18px; border-radius: 15px;
-    margin-bottom: 15px; display: flex; align-items: center;
-    gap: 15px; border: 1px solid var(--glass-border);
-    cursor: pointer; transition: 0.2s;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-}
-
-.service-card:active { transform: scale(0.97); }
-
-.service-date {
-    background: var(--weaver-gradient); color: white;
-    width: 50px; height: 50px; border-radius: 12px;
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; font-weight: 800; font-size: 0.9rem;
-}
-
-.service-info h3 { margin: 0; font-size: 1rem; color: var(--text-dark); }
-.service-info p { margin: 0; font-size: 0.75rem; color: var(--text-muted); }
-
-.big-btn {
-    width: 100%; padding: 18px; border-radius: 15px; border: none;
-    background: white; color: var(--primary); font-weight: 800;
-    font-size: 1rem; margin-top: 10px; cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    border: 1px solid var(--glass-border);
-}
-
-.loading-small { text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px; }
-
-/* SPLASH SCREEN */
-#splash-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: var(--weaver-gradient); z-index: 9999;
-    display: flex; align-items: center; justify-content: center;
-    color: white; text-align: center; transition: opacity 0.8s ease;
-}
-.splash-logo { font-size: 5rem; margin-bottom: 20px; animation: pulse 2s infinite; }
-#motivational-quote { font-style: italic; opacity: 0.9; padding: 0 40px; margin-top: 10px; font-size: 0.9rem; }
-
-/* MODAL */
-.modal {
-    display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 2000;
-    align-items: center; justify-content: center;
-}
-.modal-content {
-    background: white; width: 90%; border-radius: 20px; padding: 25px;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-.input-group { margin-bottom: 15px; }
-.input-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
-.input-group input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; }
-
-.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-.modal-actions button { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; }
-.save-btn { background: var(--primary); color: white; }
-.cancel-btn { background: #eee; color: #666; }
-
-/* DASHBOARD BIENVENIDA */
-.welcome-card {
-    background: white; padding: 20px; border-radius: 20px; margin-bottom: 25px;
-    border-left: 5px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-}
-.welcome-card h2 { color: var(--primary); font-size: 1.4rem; margin-bottom: 5px; }
+/* DASHBOARD */
+.content-padding { padding: 20px; flex: 1; overflow-y: auto; }
+.welcome-card { background: white; padding: 20px; border-radius: 20px; margin-bottom: 25px; border-left: 5px solid var(--primary); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+.welcome-card h2 { color: var(--primary); font-size: 1.4rem; margin-bottom: 5px; font-weight: 800; }
 .welcome-card p { font-size: 0.85rem; color: var(--text-muted); }
 
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.section-header span { font-weight: 800; font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; }
-.add-service-btn { background: none; border: none; color: var(--primary); font-weight: 800; font-size: 0.8rem; cursor: pointer; }
+.section-title-text { font-weight: 800; font-size: 0.75rem; color: var(--text-muted); letter-spacing: 1px; }
+.add-service-btn { background: none; border: none; color: var(--primary); font-weight: 800; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 5px; }
 
-@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+.service-card { background: white; padding: 18px; border-radius: 15px; margin-bottom: 12px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--glass-border); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+.service-date { background: var(--weaver-gradient); color: white; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.service-info h3 { font-size: 1rem; color: var(--text-dark); margin: 0; }
+.service-info p { font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0; }
 
-/* BUSCADOR DENTRO DEL MODAL */
+/* BOTÓN EXPLORAR REGLADO */
+.big-btn {
+    width: 100%; padding: 18px; border-radius: 15px; border: 1px solid var(--glass-border);
+    background: white; color: var(--primary); font-weight: 800; font-size: 1rem;
+    margin-top: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: 0.2s;
+}
+.big-btn:active { transform: scale(0.98); background: #f8fafc; }
+
+/* BUSCADOR */
+.search-section { padding: 15px 20px; flex-shrink: 0; }
+.search-card { background: white; border-radius: 12px; padding: 12px 18px; display: flex; align-items: center; gap: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border: 1px solid var(--glass-border); }
+.search-card i { color: var(--primary); font-size: 1rem; }
+.search-card input { width: 100%; border: none; outline: none; font-size: 1rem; background: transparent; font-family: inherit; color: var(--text-dark); }
+
+.song-list { flex: 1; overflow-y: auto; padding: 0 20px 20px; }
+.song-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(0,0,0,0.03); cursor: pointer; transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+.song-card:active { transform: scale(0.98); background: #f9fafb; }
+
+/* TOOLBAR */
+.toolbar { padding: 15px 10px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; }
+.tool-pill-box { background: #f1f5f9; padding: 3px; border-radius: 10px; display: flex; }
+.pill { border: none; background: none; padding: 8px 12px; border-radius: 8px; font-weight: 700; color: #666; cursor: pointer; font-size: 0.8rem; }
+.pill.active { background: var(--primary); color: white; }
+.tool-circle-group { display: flex; align-items: center; background: #f1f5f9; border-radius: 30px; padding: 3px; gap: 5px; }
+.circle-btn { width: 30px; height: 30px; border-radius: 50%; border: none; background: white; color: var(--primary); font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+#current-key { font-weight: 900; color: var(--primary); min-width: 20px; text-align: center; font-size: 0.9rem; }
+.size-label { color: var(--primary); font-size: 0.75rem; min-width: 20px; text-align: center; opacity: 0.6; }
+
+/* LETRAS */
+.lyrics-container { flex: 1; overflow-y: auto; padding: 20px 25px 100px; font-family: 'Fira Code', monospace; line-height: 2.8; white-space: pre-wrap; }
+.section-tag { display: block; color: var(--primary); font-family: 'Inter', sans-serif; font-weight: 800; font-size: 1rem; margin-top: 15px; margin-bottom: 5px; }
+.chord-wrapper { position: relative; display: inline-block; color: transparent; font-size: 0.82em; }
+.chord-wrapper::before { content: attr(data-chord); position: absolute; top: -1.3em; left: 0; color: var(--primary); visibility: visible; font-weight: 800; font-family: 'Inter', sans-serif; white-space: nowrap; }
+
+/* MODAL */
+.modal { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; }
+.modal-content { background: white; width: 90%; max-width: 400px; border-radius: 20px; padding: 25px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
+.input-group input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 0.9rem; }
+
 .modal-search-wrapper { position: relative; display: flex; align-items: center; }
 .modal-search-wrapper i { position: absolute; left: 12px; color: var(--text-muted); font-size: 0.8rem; }
 .modal-search-wrapper input { padding-left: 35px !important; }
 
-.search-results-dropdown {
-    max-height: 150px; overflow-y: auto; background: #f8fafc;
-    border-radius: 10px; margin-top: 5px; border: 1px solid #eee; display: none;
-}
-.modal-search-item {
-    padding: 10px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer;
-    font-size: 0.85rem; display: flex; justify-content: space-between;
-}
-.modal-search-item:hover { background: #eef2ff; color: var(--primary); }
+.modal-search-results { max-height: 120px; overflow-y: auto; background: #f8fafc; border-radius: 8px; margin-top: 5px; border: 1px solid #eee; }
+.modal-search-item { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; font-size: 0.8rem; display: flex; flex-direction: column; }
+.modal-search-item:hover { background: #eef2ff; }
 
-/* LISTA DE CANCIONES SELECCIONADAS */
-.selected-songs-area { margin-top: 15px; background: #f1f5f9; padding: 12px; border-radius: 12px; }
-.selected-songs-area label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 8px; }
-#selected-songs-list { display: flex; flex-direction: column; gap: 5px; }
-.selected-song-pill {
-    background: white; padding: 8px 12px; border-radius: 8px; font-size: 0.8rem;
-    display: flex; justify-content: space-between; align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02); font-weight: 600;
-}
+.selected-songs-area { margin-top: 15px; background: #f1f5f9; padding: 12px; border-radius: 12px; max-height: 120px; overflow-y: auto; }
+.selected-song-pill { background: white; padding: 8px 12px; border-radius: 8px; font-size: 0.75rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
 .selected-song-pill i { color: #ef4444; cursor: pointer; padding: 5px; }
-.empty-msg { font-size: 0.75rem; color: #999; text-align: center; font-style: italic; }
 
-/* SISTEMA DE NOTIFICACIONES (TOASTS) */
-#toast-container {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    z-index: 10000; width: 90%; max-width: 400px;
-}
-.toast {
-    background: var(--glass-bg); backdrop-filter: blur(15px);
-    padding: 15px 20px; border-radius: 15px; border-left: 5px solid var(--primary);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1); color: var(--text-dark);
-    margin-bottom: 10px; display: flex; align-items: center; gap: 12px;
-    animation: slideDown 0.4s ease forwards;
-}
-.toast.success { border-left-color: #10b981; }
-.toast.error { border-left-color: #ef4444; }
-.toast i { font-size: 1.2rem; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.modal-actions button { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: 800; cursor: pointer; font-size: 0.9rem; }
+.save-btn { background: var(--primary); color: white; }
+.cancel-btn { background: #eee; color: #666; }
 
-@keyframes slideDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+/* NOTIFICACIONES */
+#toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; width: 90%; max-width: 350px; }
+.toast { background: white; padding: 12px 18px; border-radius: 12px; border-left: 5px solid var(--primary); box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 10px; animation: slideDown 0.3s ease; }
+
+/* SPLASH SCREEN REPARADO */
+#splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--weaver-gradient); z-index: 9999; display: flex; align-items: center; justify-content: center; color: white; text-align: center; transition: opacity 0.6s ease; }
+.splash-logo { font-size: 5rem; margin-bottom: 10px; animation: pulse 2s infinite; }
+.splash-content h1 { font-size: 1.8rem; font-weight: 900; margin-bottom: 10px; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+.footer-text { padding: 15px; text-align: center; font-size: 0.7rem; color: #999; font-weight: 700; background: white; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
+.fab-scroll { position: absolute; bottom: 85px; right: 20px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; border-radius: 18px; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4); cursor: pointer; z-index: 100; }
+.loading-small { text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px; }

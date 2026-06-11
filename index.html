@@ -18,7 +18,6 @@
             <div class="splash-logo">🎶</div>
             <h1>SongChord Live Pro</h1>
             <p id="motivational-quote">"La música es el lenguaje que nos acerca al corazón de Dios."</p>
-            <div class="loader-dots"><span></span><span></span><span></span></div>
         </div>
     </div>
 
@@ -38,7 +37,7 @@
                 </div>
 
                 <div class="section-header">
-                    <span>PRÓXIMOS SERVICIOS</span>
+                    <span class="section-title-text">PRÓXIMOS SERVICIOS</span>
                     <button class="add-service-btn" onclick="openServiceModal()"><i class="fas fa-plus"></i> Programar</button>
                 </div>
 
@@ -46,13 +45,13 @@
                     <p class="loading-small">Cargando agenda del ministerio...</p>
                 </div>
 
+                <!-- BOTÓN REPARADO -->
                 <button class="big-btn" onclick="showAllSongs()">
                     <i class="fas fa-music"></i> Explorar Repertorio Completo
                 </button>
             </div>
         </div>
 
-        <!-- FORMULARIO MODAL: NUEVO SERVICIO -->
         <!-- FORMULARIO MODAL: NUEVO SERVICIO -->
         <div id="service-modal" class="modal">
             <div class="modal-content">
@@ -70,21 +69,19 @@
                     <input type="text" id="new-service-leader" placeholder="Nombre del encargado">
                 </div>
                 
-                <!-- BUSCADOR DE CANCIONES DENTRO DEL MODAL -->
                 <div class="input-group">
                     <label>Seleccionar Canciones</label>
                     <div class="modal-search-wrapper">
                         <i class="fas fa-search"></i>
                         <input type="text" id="modal-song-search" placeholder="Buscar por título o artista..." oninput="searchSongsForModal()">
                     </div>
-                    <div id="modal-search-results" class="search-results-dropdown"></div>
+                    <div id="modal-search-results" class="modal-search-results"></div>
                 </div>
 
-                <!-- LISTA DE CANCIONES SELECCIONADAS (SETLIST) -->
                 <div class="selected-songs-area">
                     <label>Setlist Seleccionado:</label>
                     <div id="selected-songs-list">
-                        <p class="empty-msg">No has seleccionado canciones aún.</p>
+                        <p class="empty-msg">Sin canciones</p>
                     </div>
                 </div>
 
@@ -95,7 +92,7 @@
             </div>
         </div>
 
-        <!-- CONTENEDOR DE NOTIFICACIONES (TOASTS) -->
+        <!-- NOTIFICACIONES -->
         <div id="toast-container"></div>
 
         <!-- VISTA 1: LISTA DE CANCIONES -->
@@ -104,10 +101,17 @@
                 <button class="back-btn" onclick="goToDashboard()"><i class="fas fa-home"></i></button>
                 <div class="header-info">
                     <h2 id="list-title">Repertorio</h2>
-                    <p id="list-subtitle">Todas las canciones</p>
+                    <p id="list-subtitle">Cargando...</p>
                 </div>
             </header>
-            <div class="search-box"><div class="search-wrapper"><i class="fas fa-search"></i><input type="text" id="search-input" placeholder="Buscar por título o artista..."></div></div>
+
+            <div class="search-section">
+                <div class="search-card">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Buscar por título o artista...">
+                </div>
+            </div>
+
             <div class="song-list" id="song-list-container"></div>
         </div>
 
