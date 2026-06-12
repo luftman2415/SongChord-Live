@@ -473,26 +473,40 @@ body:not(.theme-day) .bpm-badge {
     align-items: center;
 }
 
-/* --- ESTILO DEL BOTÓN DE FAVORITOS (MÁS PEQUEÑO) --- */
+/* --- ESTILO DEL BOTÓN DE FAVORITOS (ACCESIBILIDAD Y CENTRADO) --- */
 .favorites-btn {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+    background: linear-gradient(135deg, #fbbf24, #d97706) !important; /* Degradado más fuerte */
     color: white !important;
-    margin-bottom: 15px !important;
-    padding: 10px 20px !important; /* Menos relleno para que sea más bajo */
-    font-size: 0.85rem !important; /* Letra un poco más pequeña */
-    width: auto !important;        /* No ocupa todo el ancho, solo el necesario */
-    align-self: center;            /* Centrado */
+    margin: 0 auto 20px auto !important; /* Centrado automático y margen abajo */
+    padding: 12px 25px !important;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important; /* Letra extra negrita para hipermetropía */
+    width: fit-content !important;
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important; /* Borde para definir la forma */
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3) !important;
+    
+    /* EFECTO PARA PROBLEMAS VISUALES */
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Sombra de texto para que las letras resalten */
+    letter-spacing: 0.5px; /* Un poco de aire entre letras ayuda a leer mejor */
 }
 
-/* Estilo para la estrella de favoritos dentro de la lista */
+/* Espaciado para que la lista de favoritos no choque con el cabezal */
+#favorites-list-container {
+    padding-top: 25px !important;
+}
+
+/* ESTRELLA DE FAVORITOS */
 .fav-star {
-    font-size: 1.2rem;
-    color: #cbd5e1; /* Gris cuando no es favorita */
+    font-size: 1.25rem;
+    color: #cbd5e1;
     padding: 10px;
     cursor: pointer;
     transition: 0.2s;
 }
-
 .fav-star.active {
-    color: #fbbf24; /* Dorado cuando es favorita */
+    color: #fbbf24;
+    filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); /* Brillo en la estrella */
 }
