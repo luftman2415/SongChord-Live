@@ -1,6 +1,7 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxc7UMNRJlXjqwVF56TdhtTuHZ_mAkmal1sydw-ZQkTEaHbTxpQZ3Ls1fu7IYhvacwD/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby7RrDvpSrKjcc_5UA96SFrFs1l9dPKNVpbu1NePktdcG5speEJYVz04GfmlJJWXTE/exec'; 
 
+let activeServiceInfo = null; // Guardará el nombre del servicio abierto
 let serviceToDelete = null; // Guardará el servicio que vamos a borrar
 let songsDatabase = [];
 let servicesDatabase = [];
@@ -119,6 +120,9 @@ function renderServices() {
 
 // 4. FILTRAR CANCIONES POR SERVICIO
 function showServiceSongs(index) {
+    // --- ESTA LÍNEA DEBE IR AQUÍ ADENTRO ---
+    activeServiceInfo = servicesDatabase[index]; 
+
     const ser = servicesDatabase[index];
     const keyWithIds = Object.keys(ser).find(k => k.toLowerCase().includes('lista de ids'));
     const rawIds = ser[keyWithIds] ? ser[keyWithIds].toString() : "";
@@ -126,12 +130,10 @@ function showServiceSongs(index) {
     // Limpiamos los IDs del texto del Excel
     const idsToFilter = rawIds.replace(/[.\s]/g, ',').split(',').map(id => id.trim()).filter(id => id !== "");
 
-    // --- CAMBIO CLAVE AQUÍ ---
-    // En lugar de filtrar la base de datos, recorremos TU lista de IDs 
-    // y buscamos cada canción para que mantenga el orden exacto (3, 2, 1...)
+    // Buscamos cada canción para que mantenga el orden exacto (3, 2, 1...)
     currentSongList = idsToFilter.map(id => {
         return songsDatabase.find(song => song.ID === id);
-    }).filter(song => song !== undefined); // Quitamos errores si un ID no existe
+    }).filter(song => song !== undefined); 
 
     // Guardamos la lista de IDs para las flechas en este orden exacto
     currentServiceSongs = currentSongList.map(s => s.ID); 
@@ -156,18 +158,42 @@ function showAllSongs() {
     renderSongList(currentSongList);
     switchView('home-view');
 }
+
 function renderSongList(songs) {
     const list = document.getElementById('song-list-container');
     if (songs.length === 0) {
         list.innerHTML = "<p class='loading-small' style='text-align:center; padding-top:20px;'>No se encontraron canciones.</p>";
         return;
     }
-    list.innerHTML = songs.map((song) => `
-        <div class="song-card" onclick="openSongByID('${song.ID}')">
-            <div><h3>${song.Titulo}</h3><p>${song.Artista}</p></div>
-            <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:5px 10px; border-radius:10px; font-size:0.75rem;">${song.Tono}</div>
-        </div>
-    `).join('');
+
+    list.innerHTML = ""; // Limpiamos la lista
+
+    songs.forEach((song, index) => {
+        const card = document.createElement('div');
+        card.className = 'song-card';
+        
+        // Solo permitimos arrastrar si estamos viendo un SERVICIO (no en el repertorio general)
+        if (currentServiceSongs.length > 0) {
+            card.draggable = true;
+            card.dataset.index = index;
+            // Añadimos los eventos de arrastre
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragend', handleDragEnd);
+        }
+
+        card.innerHTML = `
+            <div class="clef-box">𝄞</div>
+            <div class="song-info-container" onclick="openSongByID('${song.ID}')">
+                <h3 style="margin:0; font-size:1rem;">${song.Titulo}</h3>
+                <p style="margin:2px 0 0; color:#64748b; font-size:0.8rem;">${song.Artista}</p>
+            </div>
+            <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:4px 8px; border-radius:8px; font-size:0.75rem;">${song.Tono}</div>
+            ${currentServiceSongs.length > 0 ? '<div class="drag-handle"><i class="fas fa-bars"></i></div>' : ''}
+        `;
+        list.appendChild(card);
+    });
 }
 
 // 5. VISUALIZADOR
@@ -512,4 +538,72 @@ function playMetronomeClick() {
     env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
     osc.connect(env); env.connect(audioCtx.destination);
     osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+}
+
+// --- LÓGICA DE ARRASTRAR CANCIONES ---
+
+let dragStartIndex;
+
+function handleDragStart(e) {
+    dragStartIndex = +this.getAttribute('data-index');
+    this.classList.add('dragging');
+}
+
+function handleDragOver(e) {
+    e.preventDefault(); // Necesario para permitir el "soltar"
+}
+
+function handleDrop(e) {
+    const dragEndIndex = +this.getAttribute('data-index');
+    swapItems(dragStartIndex, dragEndIndex);
+    this.classList.remove('dragging');
+}
+
+function handleDragEnd() {
+    this.classList.remove('dragging');
+}
+
+// Función que intercambia las canciones en la lista y redibuja
+function swapItems(fromIndex, toIndex) {
+    const itemTarget = currentSongList[fromIndex];
+    currentSongList.splice(fromIndex, 1);
+    currentSongList.splice(toIndex, 0, itemTarget);
+    
+    // Actualizamos la lista de IDs local
+    currentServiceSongs = currentSongList.map(s => s.ID);
+
+    // Dibujamos la lista con el nuevo orden
+    renderSongList(currentSongList);
+    
+    // --- NUEVO: GUARDAR EN EXCEL ---
+    saveNewOrderToExcel();
+}
+
+// NUEVA FUNCIÓN PARA ENVIAR EL ORDEN AL EXCEL
+async function saveNewOrderToExcel() {
+    if (!activeServiceInfo) return;
+
+    // Buscamos el nombre del servicio actual
+    const nombreKey = Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'));
+    const nombreServicio = activeServiceInfo[nombreKey];
+    
+    // Unimos los IDs en el nuevo orden
+    const nuevosIds = currentServiceSongs.join(',');
+
+    showToast("Guardando orden...", "info");
+
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'update_order',
+                nombre: nombreServicio.toString(),
+                ids: nuevosIds
+            })
+        });
+        showToast("Orden guardado permanentemente", "success");
+    } catch (e) {
+        showToast("Error al guardar orden en la nube", "error");
+    }
 }

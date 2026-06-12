@@ -400,3 +400,46 @@ body:not(.theme-day) .delete-service-btn {
 .fab-scroll {
     bottom: 85px !important;
 }
+
+/* --- ESTILOS PARA REORDENAR Y DECORACIÓN --- */
+
+/* Contenedor del símbolo musical (Clave de Sol) */
+.clef-box {
+    font-size: 1.5rem;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+}
+
+/* El icono de las 3 líneas para arrastrar */
+.drag-handle {
+    color: #cbd5e1;
+    margin-left: 10px;
+    padding: 10px 5px;
+    cursor: grab;
+    font-size: 1.1rem;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+/* Efecto visual cuando estamos arrastrando una canción */
+.dragging {
+    opacity: 0.4;
+    border: 2px dashed var(--primary) !important;
+    transform: scale(0.98);
+}
+
+/* Alineación de la tarjeta para que quepan los nuevos iconos */
+.song-card {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Alinea todo a la izquierda */
+}
+
+.song-info-container {
+    flex: 1; /* Hace que el texto use todo el espacio central */
+}
