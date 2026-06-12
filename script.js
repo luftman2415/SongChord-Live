@@ -1,6 +1,7 @@
 // --- CONFIGURACIÓN ---
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby7RrDvpSrKjcc_5UA96SFrFs1l9dPKNVpbu1NePktdcG5speEJYVz04GfmlJJWXTE/exec'; 
 
+let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let activeServiceInfo = null; // Guardará el nombre del servicio abierto
 let serviceToDelete = null; // Guardará el servicio que vamos a borrar
 let songsDatabase = [];
@@ -161,17 +162,23 @@ function showAllSongs() {
 
 function renderSongList(songs) {
     const list = document.getElementById('song-list-container');
+    // Si estamos en la vista de favoritos, usamos su contenedor propio
+    const favList = document.getElementById('favorites-list-container');
+    const targetList = document.getElementById('favorites-view').classList.contains('active') ? favList : list;
+
     if (songs.length === 0) {
-        list.innerHTML = "<p class='loading-small' style='text-align:center; padding-top:20px;'>No se encontraron canciones.</p>";
+        targetList.innerHTML = "<p class='loading-small' style='text-align:center; padding-top:20px;'>No hay canciones.</p>";
         return;
     }
 
-    list.innerHTML = ""; // Limpiamos la lista
+    targetList.innerHTML = ""; 
 
     songs.forEach((song, index) => {
+        const isFav = favorites.includes(song.ID); // ¿Es favorita?
         const card = document.createElement('div');
         card.className = 'song-card';
         
+        // Configuración de arrastre (solo si es un servicio)
         if (currentServiceSongs.length > 0) {
             card.draggable = true;
             card.dataset.index = index;
@@ -181,20 +188,20 @@ function renderSongList(songs) {
             card.addEventListener('dragend', handleDragEnd);
         }
 
-        // --- LÓGICA DE VISUALIZACIÓN ---
         card.innerHTML = `
-            <div class="clef-box">𝄞</div>
+            <div class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${song.ID}')">
+                <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+            </div>
             <div class="song-info-container" onclick="openSongByID('${song.ID}')">
                 <h3 style="margin:0; font-size:1rem;">${song.Titulo}</h3>
                 <p style="margin:2px 0 0; color:#64748b; font-size:0.8rem;">${song.Artista}</p>
             </div>
             <div class="song-badges">
-                ${song.BPM && song.BPM > 0 ? `<div class="bpm-badge"><i class="fas fa-metronome"></i> BPM ${song.BPM}</div>` : ''}
+                ${song.BPM > 0 ? `<div class="bpm-badge"><i class="fas fa-metronome"></i> BPM ${song.BPM}</div>` : ''}
                 <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:4px 8px; border-radius:8px; font-size:0.75rem;">${song.Tono}</div>
             </div>
-            ${currentServiceSongs.length > 0 ? '<div class="drag-handle"><i class="fas fa-bars"></i></div>' : ''}
         `;
-        list.appendChild(card);
+        targetList.appendChild(card);
     });
 }
 
@@ -608,4 +615,36 @@ async function saveNewOrderToExcel() {
     } catch (e) {
         showToast("Error al guardar orden en la nube", "error");
     }
+}
+
+// FUNCIÓN PARA AGREGAR/QUITAR DE FAVORITOS
+function toggleFavorite(event, id) {
+    event.stopPropagation(); // Evita que se abra la canción al tocar la estrella
+    const index = favorites.indexOf(id);
+    
+    if (index > -1) {
+        favorites.splice(index, 1); // Quitar
+        showToast("Eliminada de favoritos", "info");
+    } else {
+        favorites.push(id); // Agregar
+        showToast("¡Añadida a favoritos!", "success");
+    }
+    
+    // Guardar en la memoria del celular
+    localStorage.setItem('songChordFavorites', JSON.stringify(favorites));
+    
+    // Actualizar la vista actual
+    if (document.getElementById('favorites-view').classList.contains('active')) {
+        showFavorites();
+    } else {
+        renderSongList(currentSongList);
+    }
+}
+
+// FUNCIÓN PARA MOSTRAR LA PANTALLA DE FAVORITOS
+function showFavorites() {
+    // Filtramos el repertorio para que solo queden las favoritas
+    const favSongs = songsDatabase.filter(s => favorites.includes(s.ID));
+    switchView('favorites-view');
+    renderSongList(favSongs);
 }

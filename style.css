@@ -472,3 +472,27 @@ body:not(.theme-day) .bpm-badge {
     display: flex;
     align-items: center;
 }
+
+/* --- ESTILO DEL BOTÓN DE FAVORITOS (MÁS PEQUEÑO) --- */
+.favorites-btn {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+    color: white !important;
+    margin-bottom: 15px !important;
+    padding: 10px 20px !important; /* Menos relleno para que sea más bajo */
+    font-size: 0.85rem !important; /* Letra un poco más pequeña */
+    width: auto !important;        /* No ocupa todo el ancho, solo el necesario */
+    align-self: center;            /* Centrado */
+}
+
+/* Estilo para la estrella de favoritos dentro de la lista */
+.fav-star {
+    font-size: 1.2rem;
+    color: #cbd5e1; /* Gris cuando no es favorita */
+    padding: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.fav-star.active {
+    color: #fbbf24; /* Dorado cuando es favorita */
+}
