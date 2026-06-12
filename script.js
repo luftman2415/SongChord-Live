@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwf-QXnrKsfjWdUPCYLuoH5yV0g-OAkCMz645n7N7FwlOwIOBhxzJ1kjiMpwYVPmhqa/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxc7UMNRJlXjqwVF56TdhtTuHZ_mAkmal1sydw-ZQkTEaHbTxpQZ3Ls1fu7IYhvacwD/exec'; 
 
 let serviceToDelete = null; // Guardará el servicio que vamos a borrar
 let songsDatabase = [];
@@ -34,12 +34,35 @@ async function initApp() {
         const response = await fetch(WEB_APP_URL);
         const data = await response.json();
         
-        if(data.bienvenida) document.getElementById('welcome-text').innerText = data.bienvenida;
+        // --- Lógica para elegir frase al azar ---
+        // --- Lógica para elegir mensaje y subtítulo al azar ---
+        // --- Lógica de Bienvenida Reparada ---
+        if(data.bienvenida && Array.isArray(data.bienvenida)) {
+            const elTitle = document.getElementById('welcome-text');
+            const elSub = document.getElementById('welcome-subtext');
+            
+            // Filtramos solo filas que tengan texto en la primera columna
+            const filasConTexto = data.bienvenida.filter(f => f[0] && f[0].toString().trim() !== "");
+            
+            // Elegimos una fila al azar de TODAS las disponibles
+            const indiceAzar = Math.floor(Math.random() * filasConTexto.length);
+            const seleccionada = filasConTexto[indiceAzar];
+            
+            // Ponemos el Título (Columna A)
+            elTitle.innerText = seleccionada[0]; 
+            
+            // Ponemos el Subtítulo (Columna B). Si está vacío, ponemos uno por defecto.
+            if (seleccionada[1] && seleccionada[1].toString().trim() !== "") {
+                elSub.innerText = seleccionada[1];
+            } else {
+                elSub.innerText = "Preparados para ministrar en Su presencia.";
+            }
+        }
 
-        // Mapeo flexible de canciones (Hoja 1)
+        // Mapeo de canciones (Hoja 1)
         songsDatabase = data.canciones.map(item => {
             const find = (key) => {
-                const k = Object.keys(item).find(k => k.toLowerCase().replace(/_/g, ' ').trim().includes(key.toLowerCase().trim()));
+                const k = Object.keys(item).find(k => k.toLowerCase().replace(/_/g, ' ').trim() === key.toLowerCase().trim());
                 return k ? item[k] : "";
             };
             return {
@@ -47,8 +70,9 @@ async function initApp() {
                 Titulo: find('Titulo') || "Sin Título",
                 Artista: find('Artista') || "Desconocido",
                 Tono: find('Tono') || "C",
-                Letra_Musicos: find('Letra Musicos') || find('Letra_Musicos') || find('Musicos') || "",
-                Letra_Voces: find('Letra Voces') || find('Letra_Voces') || find('Voces') || ""
+                BPM: find('BPM') || 0,
+                Letra_Musicos: find('Letra Musicos') || find('Musicos') || "",
+                Letra_Voces: find('Letra Voces') || find('Voces') || ""
             };
         });
 
