@@ -443,3 +443,32 @@ body:not(.theme-day) .delete-service-btn {
 .song-info-container {
     flex: 1; /* Hace que el texto use todo el espacio central */
 }
+
+/* --- ESTILO DEL BADGE DE BPM --- */
+.bpm-badge {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 4px 10px; /* Un poco más de aire a los lados */
+    border-radius: 8px;
+    font-size: 0.65rem; /* Un pelín más pequeño para que no compita con el título */
+    font-weight: 700;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(0,0,0,0.05);
+    white-space: nowrap; /* Evita que se rompa en dos líneas */
+}
+
+/* En temas oscuros, el badge de BPM se adapta */
+body:not(.theme-day) .bpm-badge {
+    background: rgba(255,255,255,0.1);
+    color: #cbd5e1;
+    border-color: rgba(255,255,255,0.1);
+}
+
+/* Contenedor de badges para que se alineen bien */
+.song-badges {
+    display: flex;
+    align-items: center;
+}

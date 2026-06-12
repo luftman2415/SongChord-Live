@@ -172,24 +172,26 @@ function renderSongList(songs) {
         const card = document.createElement('div');
         card.className = 'song-card';
         
-        // Solo permitimos arrastrar si estamos viendo un SERVICIO (no en el repertorio general)
         if (currentServiceSongs.length > 0) {
             card.draggable = true;
             card.dataset.index = index;
-            // Añadimos los eventos de arrastre
             card.addEventListener('dragstart', handleDragStart);
             card.addEventListener('dragover', handleDragOver);
             card.addEventListener('drop', handleDrop);
             card.addEventListener('dragend', handleDragEnd);
         }
 
+        // --- LÓGICA DE VISUALIZACIÓN ---
         card.innerHTML = `
             <div class="clef-box">𝄞</div>
             <div class="song-info-container" onclick="openSongByID('${song.ID}')">
                 <h3 style="margin:0; font-size:1rem;">${song.Titulo}</h3>
                 <p style="margin:2px 0 0; color:#64748b; font-size:0.8rem;">${song.Artista}</p>
             </div>
-            <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:4px 8px; border-radius:8px; font-size:0.75rem;">${song.Tono}</div>
+            <div class="song-badges">
+                ${song.BPM && song.BPM > 0 ? `<div class="bpm-badge"><i class="fas fa-metronome"></i> BPM ${song.BPM}</div>` : ''}
+                <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:4px 8px; border-radius:8px; font-size:0.75rem;">${song.Tono}</div>
+            </div>
             ${currentServiceSongs.length > 0 ? '<div class="drag-handle"><i class="fas fa-bars"></i></div>' : ''}
         `;
         list.appendChild(card);
