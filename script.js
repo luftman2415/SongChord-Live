@@ -656,10 +656,13 @@ function toggleFavorite(event, id) {
 
 // FUNCIÓN PARA MOSTRAR LA PANTALLA DE FAVORITOS
 function showFavorites() {
-    // Filtramos el repertorio para que solo queden las favoritas
+    // Limpiamos el buscador de favoritos al entrar
+    const inputFav = document.getElementById('search-favorites');
+    if(inputFav) inputFav.value = "";
+    
     const favSongs = songsDatabase.filter(s => favorites.includes(s.ID));
     switchView('favorites-view');
-    renderSongList(favSongs);
+    renderSongList(favSongs, 'favorites-list-container');
 }
 
 // --- FUNCIÓN PARA COMPARTIR POR WHATSAPP ---
@@ -689,4 +692,17 @@ function shareSetlist() {
     
     // Abrir en una pestaña nueva
     window.open(url, '_blank');
+}
+
+// FUNCIÓN PARA BUSCAR DENTRO DE FAVORITOS
+function filterFavorites() {
+    const term = document.getElementById('search-favorites').value.toLowerCase();
+    
+    // Filtramos solo entre las canciones que son favoritas
+    const filteredFavs = songsDatabase.filter(s => 
+        favorites.includes(s.ID) && 
+        (s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term))
+    );
+    
+    renderSongList(filteredFavs, 'favorites-list-container');
 }
