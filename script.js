@@ -93,24 +93,34 @@ function renderServices() {
         container.innerHTML = "<p class='loading-small'>No hay servicios programados.</p>";
         return;
     }
+    
     container.innerHTML = servicesDatabase.map((ser, i) => {
+        // Buscador de columnas flexible
         const getVal = (keyword) => {
             const key = Object.keys(ser).find(k => k.toLowerCase().includes(keyword.toLowerCase()));
             return key ? ser[key] : "";
         };
 
         const fechaRaw = getVal('fecha');
-        const fechaDisplay = fechaRaw ? fechaRaw.toString().split('T')[0] : "Sin fecha";
+        const fecha = fechaRaw ? fechaRaw.toString().split('T')[0] : "Pendiente";
         const nombre = getVal('nombre') || "Servicio";
+        const lider = getVal('líder') || getVal('director') || "Por definir";
+        
+        // --- LÓGICA PARA CONTAR CANCIONES ---
+        const rawIds = getVal('ids') || "";
+        const listaIds = rawIds.toString().split(',').map(id => id.trim()).filter(id => id !== "");
+        const totalCanciones = listaIds.length;
 
         return `
             <div class="service-card" onclick="showServiceSongs(${i})">
                 <div class="service-date"><i class="far fa-calendar-alt"></i></div>
                 <div class="service-info">
                     <h3>${nombre}</h3>
-                    <p>${fechaDisplay}</p>
+                    <p>📅 ${fecha} • 🎤 ${lider}</p>
+                    <p style="color: var(--primary); font-weight: 800; font-size: 0.65rem; margin-top: 4px;">
+                        <i class="fas fa-list-ol"></i> ${totalCanciones} CANCIONES
+                    </p>
                 </div>
-                <!-- BOTÓN ELIMINAR -->
                 <button class="delete-service-btn" onclick="confirmDeleteService(event, ${i})">
                     <i class="fas fa-trash-alt"></i>
                 </button>
