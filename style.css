@@ -84,21 +84,18 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* Al pasar el mouse/dedo, el botón se expande sutilmente */
+/* Al pasar el mouse o dedo: El fondo se aclara y el texto se mantiene firme */
 .big-btn:hover {
-    background: #fdfdfd;
-    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transform: translateY(-2px);
-    color: var(--weaver-gradient);
+    color: var(--primary) !important; /* Mantiene el color principal del tema */
 }
 
-/* AL TOCAR: Se encoge rápido y cambia de color, simulando que "te empuja" a la otra pantalla */
 .big-btn:active {
     transform: scale(0.94);
-    background: #f1f5f9;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    background: rgba(255, 255, 255, 0.8);
 }
-.big-btn:active { transform: scale(0.98); background: #f8fafc; }
 
 /* BUSCADOR */
 .search-section { padding: 15px 20px; flex-shrink: 0; }
@@ -343,29 +340,26 @@ body.theme-ocean .lyrics-container {
     color: var(--text-dark); 
 }
 
-/* BOTÓN ELIMINAR EN TARJETA */
+/* --- BOTÓN ELIMINAR ADAPTATIVO --- */
 .delete-service-btn {
     margin-left: auto;
     background: none;
     border: none;
-    color: #cbd5e1; /* Gris suave por defecto */
+    color: var(--text-muted); /* Usa el color tenue del tema actual */
     padding: 10px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.1rem;
     transition: 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
+    opacity: 0.6;
 }
 
 .delete-service-btn:hover {
-    color: #ef4444; /* Rojo al pasar el mouse */
+    color: #ef4444 !important; /* Rojo brillante siempre al pasar el mouse */
     transform: scale(1.2);
-}
-
-/* En modo oscuro el gris es un poco más fuerte */
-body:not(.theme-day) .delete-service-btn {
-    color: #475569;
+    opacity: 1;
 }
 
 /* --- DISEÑO DEL METRÓNOMO Y NAVEGACIÓN --- */
