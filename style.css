@@ -62,12 +62,41 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
 .service-info h3 { font-size: 1rem; color: var(--text-dark); margin: 0; }
 .service-info p { font-size: 0.75rem; color: var(--text-muted); margin: 2px 0 0; }
 
-/* BOTÓN EXPLORAR REGLADO */
+/* --- BOTONES GRANDES (EFECTO DE LANZAMIENTO) --- */
 .big-btn {
-    width: 100%; padding: 18px; border-radius: 15px; border: 1px solid var(--glass-border);
-    background: white; color: var(--primary); font-weight: 800; font-size: 1rem;
-    margin-top: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.03); transition: 0.2s;
+    width: 100%;
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid var(--glass-border);
+    background: white;
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 1rem;
+    margin-top: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    
+    /* Esta es la clave: transición elástica */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Al pasar el mouse/dedo, el botón se expande sutilmente */
+.big-btn:hover {
+    background: #fdfdfd;
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+    transform: translateY(-2px);
+    color: var(--weaver-gradient);
+}
+
+/* AL TOCAR: Se encoge rápido y cambia de color, simulando que "te empuja" a la otra pantalla */
+.big-btn:active {
+    transform: scale(0.94);
+    background: #f1f5f9;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 .big-btn:active { transform: scale(0.98); background: #f8fafc; }
 
@@ -473,24 +502,34 @@ body:not(.theme-day) .bpm-badge {
     align-items: center;
 }
 
-/* --- ESTILO DEL BOTÓN DE FAVORITOS (ACCESIBILIDAD Y CENTRADO) --- */
+/* --- BOTÓN FAVORITOS PREMIUM (ESTILO 3D) --- */
 .favorites-btn {
-    background: linear-gradient(135deg, #fbbf24, #d97706) !important; /* Degradado más fuerte */
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important; /* Dorado Ambarino */
     color: white !important;
-    margin: 0 auto 20px auto !important; /* Centrado automático y margen abajo */
+    border: 2px solid white !important; /* Borde blanco nítido */
     padding: 12px 25px !important;
     font-size: 0.9rem !important;
-    font-weight: 900 !important; /* Letra extra negrita para hipermetropía */
+    font-weight: 900 !important;
+    border-radius: 30px !important; /* Más redondeado para parecer botón de lujo */
     width: fit-content !important;
     display: flex !important;
-    align-items: center;
-    gap: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.4) !important; /* Borde para definir la forma */
-    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.3) !important;
-    
-    /* EFECTO PARA PROBLEMAS VISUALES */
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Sombra de texto para que las letras resalten */
-    letter-spacing: 0.5px; /* Un poco de aire entre letras ayuda a leer mejor */
+    margin: 0 auto 25px auto !important;
+    box-shadow: 0 6px 15px rgba(217, 119, 6, 0.35) !important;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    cursor: pointer;
+}
+
+/* El botón salta al pasar el dedo o mouse */
+.favorites-btn:hover {
+    transform: scale(1.08) translateY(-3px);
+    box-shadow: 0 10px 20px rgba(217, 119, 6, 0.45) !important;
+}
+
+/* El botón se hunde al presionarlo */
+.favorites-btn:active {
+    transform: scale(0.92) translateY(1px);
+    box-shadow: 0 2px 5px rgba(217, 119, 6, 0.2) !important;
 }
 
 /* Espaciado para que la lista de favoritos no choque con el cabezal */
@@ -509,4 +548,45 @@ body:not(.theme-day) .bpm-badge {
 .fav-star.active {
     color: #fbbf24;
     filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.5)); /* Brillo en la estrella */
+}
+
+/* --- BOTÓN WHATSAPP PREMIUM (DISEÑO 3D) --- */
+.share-wa-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: #25d366; /* Verde oficial WA */
+    color: white;
+    
+    /* Borde blanco grueso para resaltar del fondo azul */
+    border: 2px solid white; 
+    
+    width: 42px; /* Un poco más grande para ser fácil de tocar */
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 101;
+    
+    /* Sombra profunda para que "salte" de la pantalla */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    
+    /* Animación suave para el efecto de rebote */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Efecto al tocar o pasar el mouse (el botón "salta" hacia ti) */
+.share-wa-btn:hover {
+    transform: scale(1.15) translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+    background: #20ba5a; /* Un verde un poquito más oscuro al presionar */
+}
+
+/* Efecto cuando lo hundes con el dedo (se siente como un botón físico) */
+.share-wa-btn:active {
+    transform: scale(0.9) translateY(1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }

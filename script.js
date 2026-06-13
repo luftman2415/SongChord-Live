@@ -155,6 +155,7 @@ function showServiceSongs(index) {
     
     renderSongList(currentSongList);
     switchView('home-view');
+    document.getElementById('share-wa-btn').style.display = 'flex';
 }
 
 function showAllSongs() {
@@ -168,6 +169,8 @@ function showAllSongs() {
     document.getElementById('list-subtitle').innerText = "Todas las canciones";
     renderSongList(currentSongList);
     switchView('home-view');
+    document.getElementById('share-wa-btn').style.display = 'none';
+activeServiceInfo = null; // Limpiamos la info del servicio
 }
 
 function renderSongList(songs) {
@@ -657,4 +660,33 @@ function showFavorites() {
     const favSongs = songsDatabase.filter(s => favorites.includes(s.ID));
     switchView('favorites-view');
     renderSongList(favSongs);
+}
+
+// --- FUNCIÓN PARA COMPARTIR POR WHATSAPP ---
+function shareSetlist() {
+    if (!activeServiceInfo || currentSongList.length === 0) return;
+
+    // Extraer datos del servicio
+    const get = (k) => activeServiceInfo[Object.keys(activeServiceInfo).find(key => key.toLowerCase().includes(k))];
+    const nombre = get('nombre') || "Servicio";
+    const fecha = get('fecha') ? get('fecha').toString().split('T')[0] : "";
+    const lider = get('líder') || get('director') || "Por definir";
+
+    // Armar el mensaje con negritas y emojis para WhatsApp
+    let mensaje = `🎶 *SETLIST: ${nombre.toUpperCase()}*\n`;
+    mensaje += `📅 *FECHA:* ${fecha}\n`;
+    mensaje += `🎤 *LÍDER:* ${lider}\n\n`;
+    mensaje += `*CANCIONES:*\n`;
+
+    currentSongList.forEach((song, i) => {
+        mensaje += `${i + 1}. ${song.Titulo} (${song.Tono})\n`;
+    });
+
+    mensaje += `\n_Enviado desde SongChord Live Pro_`;
+
+    // Crear el enlace de WhatsApp
+    const url = `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+    
+    // Abrir en una pestaña nueva
+    window.open(url, '_blank');
 }
