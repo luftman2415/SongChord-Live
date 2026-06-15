@@ -28,9 +28,18 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
 @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(60px, 60px) scale(1.1); } }
 
 .app-container {
-    width: 100%; max-width: 500px; height: 100%; background: var(--glass-bg); 
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    display: flex; flex-direction: column; position: relative; border-left: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border);
+    width: 100%;
+    max-width: 500px;
+    height: 100dvh; /* dvh es la altura real dinámica del celular */
+    background: var(--glass-bg); 
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-left: 1px solid var(--glass-border);
+    border-right: 1px solid var(--glass-border);
+    overflow: hidden;
 }
 
 .view { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -157,7 +166,17 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
 .splash-content h1 { font-size: 1.8rem; font-weight: 900; margin-bottom: 10px; }
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-.footer-text { padding: 15px; text-align: center; font-size: 0.7rem; color: #999; font-weight: 700; background: white; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
+.footer-text {
+    padding: 8px; /* Reducimos padding para ganar espacio */
+    text-align: center;
+    font-size: 0.65rem;
+    color: #999;
+    font-weight: 700;
+    background: white;
+    border-top: 1px solid #f1f5f9;
+    flex-shrink: 0;
+    z-index: 10;
+}
 .fab-scroll { position: absolute; bottom: 85px; right: 20px; width: 50px; height: 50px; background: var(--primary); color: white; border: none; border-radius: 18px; box-shadow: 0 8px 15px rgba(99, 102, 241, 0.4); cursor: pointer; z-index: 100; }
 .loading-small { text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 20px; }
 
@@ -635,31 +654,51 @@ body:not(.theme-day) .bpm-badge {
     gap: 8px;
 } /* Esta llave faltaba y arregla el error del CSS */
 
-/* --- BOTONES PREMIUM 3D (UNIFICADOS) --- */
+/* --- BOTONES DE ACCIÓN PREMIUM 3D (UNIFICADOS) --- */
 .premium-action-btn, .dash-action-btn {
-    width: 40px; height: 40px; border-radius: 50%;
-    border: 2px solid white; color: white; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.1rem; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    width: 42px; 
+    height: 42px; 
+    border-radius: 50%;
+    border: 2px solid white; 
+    color: white; 
+    cursor: pointer;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-size: 1.3rem; 
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 101;
 }
 
-.wa-btn { background: #25d366; }
-.edit-btn { background: #f59e0b; }
-.delete-btn { background: #ef4444; }
+/* Colores */
+.wa-btn { background: #25d366 !important; }
+.edit-btn { background: #f59e0b !important; }
+.delete-btn { background: #ef4444 !important; }
 
+/* Animaciones */
 .premium-action-btn:hover, .dash-action-btn:hover {
     transform: scale(1.15) translateY(-2px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
 }
 
 .premium-action-btn:active, .dash-action-btn:active {
     transform: scale(0.9) translateY(1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-/* Contenedor de botones en la tarjeta del Dashboard */
+/* Contenedor en el Dashboard */
 .service-card-actions {
-    display: flex; gap: 8px; margin-left: auto;
+    display: flex; 
+    gap: 10px; 
+    margin-left: auto;
+}
+
+/* Posicionamiento del botón WhatsApp en el visor */
+#share-wa-btn {
+    position: absolute;
+    right: 15px;
+    top: 15px;
 }
 
 /* ESTILOS MODO EDICIÓN CANCIONES */
