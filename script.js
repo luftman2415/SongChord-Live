@@ -350,7 +350,16 @@ function setMode(mode) {
 function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(viewId).classList.add('active');
+    
+    // Si la vista activa es el Dashboard, nos aseguramos de limpiar el historial
+    if (viewId === 'dashboard-view') {
+        // No añadimos nada al historial
+    } else {
+        // Guardamos el movimiento en el historial del navegador/celular
+        history.pushState({ view: viewId }, "");
+    }
 }
+
 function goToDashboard() { switchView('dashboard-view'); }
 function closeSong() {
     // 1. Matamos los procesos primero (Scroll y Metrónomo)
@@ -888,3 +897,21 @@ function openEditServiceModalFromDash(event, index) {
 
     openEditServiceModal(); // Abrimos el modal que ya teníamos
 }
+
+// DETECTOR DEL BOTÓN ATRÁS DEL TELÉFONO
+window.onpopstate = function(event) {
+    // Si el usuario presiona "atrás" en el celular:
+    if (event.state && event.state.view) {
+        // Si estaba en una canción, la cerramos correctamente (limpiando motores)
+        if (event.state.view === 'home-view') {
+            closeSong(); 
+        } 
+        // Si estaba en la lista, volvemos al dashboard
+        else if (event.state.view === 'dashboard-view') {
+            goToDashboard();
+        }
+    } else {
+        // Si no hay más historial (llegó al inicio), vuelve al Dashboard
+        goToDashboard();
+    }
+};
