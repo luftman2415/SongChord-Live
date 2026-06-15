@@ -348,14 +348,13 @@ function setMode(mode) {
 }
 
 function switchView(viewId) {
+    // 1. Ocultar todas las vistas y mostrar la deseada
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(viewId).classList.add('active');
+    const target = document.getElementById(viewId);
+    if (target) target.classList.add('active');
     
-    // Si la vista activa es el Dashboard, nos aseguramos de limpiar el historial
-    if (viewId === 'dashboard-view') {
-        // No añadimos nada al historial
-    } else {
-        // Guardamos el movimiento en el historial del navegador/celular
+    // 2. Avisar al historial del celular (excepto si ya estamos en el Dashboard)
+    if (viewId !== 'dashboard-view') {
         history.pushState({ view: viewId }, "");
     }
 }
@@ -543,6 +542,7 @@ function confirmDeleteService(event, index) {
     
     document.getElementById('delete-service-info').innerText = `Vas a eliminar "${nombre}". Esta acción no se puede deshacer.`;
     document.getElementById('delete-confirm-modal').style.display = 'flex';
+history.pushState({ modal: 'delete-modal' }, "");
 }
 
 // 2. Cerramos el modal
@@ -903,33 +903,34 @@ function openEditServiceModalFromDash(event, index) {
     openEditServiceModal(); // Abrimos el modal que ya teníamos
 }
 
-// DETECTOR DEL BOTÓN ATRÁS MEJORADO (VISTAS + MODALES)
+// CEREBRO DE NAVEGACIÓN ATRÁS (BLINDADO)
 window.onpopstate = function(event) {
-    const serviceModal = document.getElementById('service-modal');
-    const settingsModal = document.getElementById('settings-modal');
+    // MODALES: Si hay algún cuadrito blanco abierto, lo cerramos
+    const modales = [
+        { id: 'service-modal', display: 'flex' },
+        { id: 'delete-confirm-modal', display: 'flex' },
+        { id: 'settings-modal', display: 'flex' }
+    ];
 
-    // 1. Si hay algún modal abierto, lo cerramos primero
-    if (serviceModal && serviceModal.style.display === 'flex') {
-        serviceModal.style.display = 'none';
-        return;
-    }
-    if (settingsModal && settingsModal.style.display === 'flex') {
-        settingsModal.style.display = 'none';
-        return;
+    for (let m of modales) {
+        let el = document.getElementById(m.id);
+        if (el && el.style.display === m.display) {
+            el.style.display = 'none';
+            return; // Detenemos aquí, ya cerramos el modal
+        }
     }
 
-    // 2. Si no hay modales, manejamos las vistas
-    if (event.state && event.state.view) {
-        if (event.state.view === 'home-view') {
-            closeSong(); 
-        } 
-        else if (event.state.view === 'dashboard-view') {
-            goToDashboard();
-        }
-        else {
-            switchView(event.state.view);
-        }
-    } else {
+    // VISTAS: Si estamos dentro de alguna sección, volvemos atrás correctamente
+    const activeView = document.querySelector('.view.active').id;
+
+    if (activeView === 'song-view') {
+        closeSong(); // Detiene scroll, metrónomo y vuelve a la lista
+    } 
+    else if (activeView === 'home-view' || activeView === 'favorites-view') {
+        goToDashboard(); // Vuelve al inicio
+    } 
+    else {
+        // Por si acaso, si no reconoce la vista, forzamos Dashboard
         goToDashboard();
     }
 };
