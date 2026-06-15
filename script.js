@@ -18,6 +18,9 @@ let fontSize = 16;
 let currentTransposition = 0;
 let isScrolling = false;
 let scrollInterval;
+let scrollTimeout; // Esta variable evitará que el scroll "salte" a otras canciones
+let scrollSpeed = 50; 
+let speedLevel = 1.0;
 
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -220,6 +223,7 @@ function renderSongList(songs) {
 
 // 5. VISUALIZADOR
 function openSongByID(id) {
+    stopAutoScroll(); // Detiene cualquier scroll previo antes de abrir la nueva
     currentSong = songsDatabase.find(s => s.ID.toString().trim() === id.toString().trim());
     if(!currentSong) return;
 
@@ -332,6 +336,10 @@ function switchView(viewId) {
 }
 function goToDashboard() { switchView('dashboard-view'); }
 function closeSong() {
+scrollSpeed = 50; 
+    speedLevel = 1.0;
+    document.getElementById('speed-display').innerText = '1.0x';
+
     // 1. Apagamos el metrónomo si está sonando
     if(metronomeInterval) clearInterval(metronomeInterval);
     
@@ -350,17 +358,31 @@ function changeFontSize(val) {
 }
 
 function toggleAutoScroll() { isScrolling ? stopAutoScroll() : startAutoScroll(); }
+
 function startAutoScroll() {
-    isScrolling = true; document.getElementById('scroll-icon').className = 'fas fa-pause';
-    scrollInterval = setInterval(() => {
-        const container = document.getElementById('lyrics-container');
-        if (container) {
-            container.scrollBy(0, 1);
-            if (Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight) stopAutoScroll();
-        }
-    }, 50);
+    isScrolling = true; 
+    document.getElementById('scroll-icon').className = 'fas fa-pause';
+    
+    // Guardamos el timeout en una variable para poder cancelarlo
+    scrollTimeout = setTimeout(() => {
+        if (!isScrolling) return; 
+        
+        scrollInterval = setInterval(() => {
+            const container = document.getElementById('lyrics-container');
+            if (container) {
+                container.scrollBy(0, 1);
+                if (Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight) stopAutoScroll();
+            }
+        }, scrollSpeed);
+    }, 1500); 
 }
-function stopAutoScroll() { isScrolling = false; document.getElementById('scroll-icon').className = 'fas fa-play'; clearInterval(scrollInterval); }
+
+function stopAutoScroll() { 
+    isScrolling = false; 
+    document.getElementById('scroll-icon').className = 'fas fa-play'; 
+    clearInterval(scrollInterval); 
+    clearTimeout(scrollTimeout); 
+}
 
 function showToast(msg, type) {
     const container = document.getElementById('toast-container');
@@ -705,4 +727,29 @@ function filterFavorites() {
     );
     
     renderSongList(filteredFavs, 'favorites-list-container');
+}
+
+// FUNCIÓN PARA CAMBIAR VELOCIDAD DE SCROLL
+function changeScrollSpeed(delta) {
+    // Delta 1: Más Lento | Delta -1: Más Rápido
+    if (delta === 1) {
+        if (scrollSpeed < 150) {
+            scrollSpeed += 10;
+            speedLevel = parseFloat((speedLevel - 0.2).toFixed(1));
+        }
+    } else {
+        if (scrollSpeed > 10) {
+            scrollSpeed -= 10;
+            speedLevel = parseFloat((speedLevel + 0.2).toFixed(1));
+        }
+    }
+
+    if (speedLevel <= 0) speedLevel = 0.2;
+
+    document.getElementById('speed-display').innerText = speedLevel.toFixed(1) + 'x';
+
+    if (isScrolling) {
+        clearInterval(scrollInterval);
+        startAutoScroll();
+    }
 }

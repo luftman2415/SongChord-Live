@@ -584,3 +584,52 @@ body:not(.theme-day) .bpm-badge {
     transform: scale(0.9) translateY(1px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
+
+.speed-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    color: var(--primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    opacity: 0.8;
+}
+
+#speed-display {
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: var(--primary);
+    min-width: 35px;
+    text-align: center;
+}
+
+.fab-scroll {
+    bottom: 85px !important;
+    opacity: 0.9;
+}
+
+#speed-display {
+    font-weight: 900;
+    color: var(--primary);
+    min-width: 38px;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+/* Ajuste para que quepan 5 grupos en la barra en móviles pequeños */
+.toolbar {
+    padding: 12px 8px;
+    background: white;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between; /* Espacia mejor los elementos */
+    align-items: center;
+    flex-wrap: nowrap; /* Evita que se amontonen en dos filas */
+    overflow-x: auto; /* Permite deslizar si el celular es muy pequeño */
+    gap: 8px;

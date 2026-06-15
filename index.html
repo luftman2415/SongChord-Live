@@ -226,6 +226,15 @@
 
                 <!-- GRUPO 4: METRÓNOMO -->
                 <div class="tool-group">
+
+<!-- NUEVO GRUPO: VELOCIDAD SCROLL -->
+                <div class="tool-group">
+                    <div class="tool-circle-group">
+                        <button class="circle-btn" onclick="changeScrollSpeed(1)"><i class="fas fa-minus"></i></button>
+                        <span id="speed-display">1.0x</span>
+                        <button class="circle-btn" onclick="changeScrollSpeed(-1)"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
                     <div class="metronome-box">
                         <button class="circle-btn" id="btn-metronome-sound" onclick="toggleMetronomeSound()">
                             <i class="fas fa-volume-mute" id="metronome-sound-icon"></i>
@@ -243,6 +252,9 @@
                 <button onclick="nextSongInSet()">Siguiente <i class="fas fa-chevron-right"></i></button>
             </div>
             
+<!-- CONTROL DE VELOCIDAD SCROLL -->
+            
+
             <button class="fab-scroll" id="btn-scroll" onclick="toggleAutoScroll()"><i class="fas fa-play" id="scroll-icon"></i></button>
         </div>
 
