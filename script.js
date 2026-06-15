@@ -498,10 +498,12 @@ document.getElementById('search-input').oninput = (e) => {
 
 function openSettingsModal() {
     document.getElementById('settings-modal').style.display = 'flex';
+    history.pushState({ modal: 'settings-modal' }, "");
 }
 
 function closeSettingsModal() {
     document.getElementById('settings-modal').style.display = 'none';
+    if (history.state && history.state.modal === 'settings-modal') history.back();
 }
 
 function setTheme(themeName) {
