@@ -440,8 +440,12 @@ function showToast(msg, type) {
 }
 
 // 9. MODAL & GUARDADO
-function openServiceModal() { tempSelectedSongs = []; renderSelectedSongs(); document.getElementById('service-modal').style.display = 'flex'; }
-function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
+function openServiceModal() { history.pushState({ modal: 'service-modal' }, ""); tempSelectedSongs = []; renderSelectedSongs(); document.getElementById('service-modal').style.display = 'flex'; }
+function closeServiceModal() { 
+    document.getElementById('service-modal').style.display = 'none'; 
+    // Si el usuario cerró el modal manualmente, quitamos ese rastro del historial
+    if (history.state && history.state.modal) history.back();
+}
 
 function searchSongsForModal() {
     const term = document.getElementById('modal-song-search').value.toLowerCase();
@@ -800,6 +804,7 @@ function changeScrollSpeed(delta) {
 }
 // FUNCIONES DE EDICIÓN DE SERVICIO
 function openEditServiceModal() {
+history.pushState({ modal: 'service-modal' }, "");
     if (!activeServiceInfo) return;
     
     // Cambiamos el título y etiquetas del modal existente para reutilizarlo
@@ -898,20 +903,33 @@ function openEditServiceModalFromDash(event, index) {
     openEditServiceModal(); // Abrimos el modal que ya teníamos
 }
 
-// DETECTOR DEL BOTÓN ATRÁS DEL TELÉFONO
+// DETECTOR DEL BOTÓN ATRÁS MEJORADO (VISTAS + MODALES)
 window.onpopstate = function(event) {
-    // Si el usuario presiona "atrás" en el celular:
+    const serviceModal = document.getElementById('service-modal');
+    const settingsModal = document.getElementById('settings-modal');
+
+    // 1. Si hay algún modal abierto, lo cerramos primero
+    if (serviceModal && serviceModal.style.display === 'flex') {
+        serviceModal.style.display = 'none';
+        return;
+    }
+    if (settingsModal && settingsModal.style.display === 'flex') {
+        settingsModal.style.display = 'none';
+        return;
+    }
+
+    // 2. Si no hay modales, manejamos las vistas
     if (event.state && event.state.view) {
-        // Si estaba en una canción, la cerramos correctamente (limpiando motores)
         if (event.state.view === 'home-view') {
             closeSong(); 
         } 
-        // Si estaba en la lista, volvemos al dashboard
         else if (event.state.view === 'dashboard-view') {
             goToDashboard();
         }
+        else {
+            switchView(event.state.view);
+        }
     } else {
-        // Si no hay más historial (llegó al inicio), vuelve al Dashboard
         goToDashboard();
     }
 };
