@@ -126,9 +126,14 @@ function renderServices() {
                         <i class="fas fa-list-ol"></i> ${totalCanciones} CANCIONES
                     </p>
                 </div>
-                <button class="delete-service-btn" onclick="confirmDeleteService(event, ${i})">
-                    <i class="fas fa-trash-alt"></i>
-                </button>
+                <div class="service-card-actions">
+                    <button class="dash-action-btn edit-btn" onclick="openEditServiceModalFromDash(event, ${i})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="dash-action-btn delete-btn" onclick="confirmDeleteService(event, ${i})">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
             </div>
         `;
     }).join('');
@@ -160,7 +165,6 @@ function showServiceSongs(index) {
     
     renderSongList(currentSongList);
     switchView('home-view');
-    document.getElementById('service-controls').style.display = 'flex';
     document.getElementById('share-wa-btn').style.display = 'flex';
 }
 
@@ -865,4 +869,22 @@ function removeSongFromCurrentService(event, songId) {
     
     renderSongList(currentSongList);
     saveNewOrderToExcel(); // Reutiliza tu función existente para guardar el nuevo orden
+}
+
+// Función para abrir edición directamente desde el Dashboard
+function openEditServiceModalFromDash(event, index) {
+    event.stopPropagation(); // Evita que se abra la lista de canciones
+    activeServiceInfo = servicesDatabase[index]; // Seleccionamos el servicio
+    
+    // Obtenemos los IDs actuales para que no se pierdan
+    const keyWithIds = Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('lista de ids'));
+    const rawIds = activeServiceInfo[keyWithIds] ? activeServiceInfo[keyWithIds].toString() : "";
+    const idsToFilter = rawIds.replace(/[.\s]/g, ',').split(',').map(id => id.trim()).filter(id => id !== "");
+    
+    // Cargamos la lista de canciones actual
+    currentSongList = idsToFilter.map(id => {
+        return songsDatabase.find(song => song.ID === id);
+    }).filter(song => song !== undefined);
+
+    openEditServiceModal(); // Abrimos el modal que ya teníamos
 }
