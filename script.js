@@ -347,19 +347,21 @@ function setMode(mode) {
     renderLyrics();
 }
 
-function switchView(viewId) {
-    // 1. Ocultar todas las vistas y mostrar la deseada
+function switchView(viewId, isBackAction = false) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     const target = document.getElementById(viewId);
     if (target) target.classList.add('active');
     
-    // 2. Avisar al historial del celular (excepto si ya estamos en el Dashboard)
-    if (viewId !== 'dashboard-view') {
+    // Solo guardamos en el historial si NO venimos de darle al botón "atrás"
+    if (!isBackAction && viewId !== 'dashboard-view') {
         history.pushState({ view: viewId }, "");
     }
 }
 
-function goToDashboard() { switchView('dashboard-view'); }
+function goToDashboard() { 
+    // Al ir al inicio, limpiamos estados anteriores para que no se cierre la App
+    switchView('dashboard-view', true); 
+}
 function closeSong() {
     // 1. Matamos los procesos primero (Scroll y Metrónomo)
     stopAutoScroll();
@@ -903,34 +905,29 @@ function openEditServiceModalFromDash(event, index) {
     openEditServiceModal(); // Abrimos el modal que ya teníamos
 }
 
-// CEREBRO DE NAVEGACIÓN ATRÁS (BLINDADO)
+// CEREBRO DE NAVEGACIÓN ATRÁS (VERSIÓN 2.0)
 window.onpopstate = function(event) {
-    // MODALES: Si hay algún cuadrito blanco abierto, lo cerramos
-    const modales = [
-        { id: 'service-modal', display: 'flex' },
-        { id: 'delete-confirm-modal', display: 'flex' },
-        { id: 'settings-modal', display: 'flex' }
-    ];
-
-    for (let m of modales) {
-        let el = document.getElementById(m.id);
-        if (el && el.style.display === m.display) {
+    // 1. Cerrar Modales
+    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal'];
+    for (let id of modales) {
+        let el = document.getElementById(id);
+        if (el && el.style.display === 'flex') {
             el.style.display = 'none';
-            return; // Detenemos aquí, ya cerramos el modal
+            return;
         }
     }
 
-    // VISTAS: Si estamos dentro de alguna sección, volvemos atrás correctamente
+    // 2. Manejar Vistas
     const activeView = document.querySelector('.view.active').id;
 
     if (activeView === 'song-view') {
-        closeSong(); // Detiene scroll, metrónomo y vuelve a la lista
+        // Si estamos en canción, cerramos procesos y vamos a la lista (Home)
+        stopAutoScroll();
+        if (metronomeInterval) { clearInterval(metronomeInterval); metronomeInterval = null; }
+        switchView('home-view', true);
     } 
     else if (activeView === 'home-view' || activeView === 'favorites-view') {
-        goToDashboard(); // Vuelve al inicio
-    } 
-    else {
-        // Por si acaso, si no reconoce la vista, forzamos Dashboard
+        // Si estamos en una lista, vamos al Dashboard
         goToDashboard();
     }
 };
