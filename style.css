@@ -633,3 +633,59 @@ body:not(.theme-day) .bpm-badge {
     flex-wrap: nowrap; /* Evita que se amontonen en dos filas */
     overflow-x: auto; /* Permite deslizar si el celular es muy pequeño */
     gap: 8px;
+} /* Esta llave faltaba y arregla el error del CSS */
+
+/* --- BOTONES PREMIUM 3D (WHATSAPP Y EDITAR) --- */
+.service-controls {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 101;
+}
+
+.premium-action-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid white; 
+    color: white;
+    cursor: pointer;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.wa-btn { background: #25d366; }
+.edit-btn { background: #f59e0b; }
+
+.premium-action-btn:hover {
+    transform: scale(1.15) translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+.premium-action-btn:active {
+    transform: scale(0.9) translateY(1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* ESTILOS MODO EDICIÓN CANCIONES */
+.remove-song-btn {
+    display: none;
+    color: #ef4444;
+    font-size: 1.2rem;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.edit-mode-active .remove-song-btn {
+    display: block;
+}
+
+.edit-mode-active .song-badges {
+    display: none;
+}

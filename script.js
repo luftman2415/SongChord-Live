@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby7RrDvpSrKjcc_5UA96SFrFs1l9dPKNVpbu1NePktdcG5speEJYVz04GfmlJJWXTE/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxpQBWuAlKso716X514YogpM4LojiQ_0Hxv0Og12bS2FXEZ6T_5cg4L0_bCPuEYvX8l/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let activeServiceInfo = null; // Guardará el nombre del servicio abierto
@@ -83,6 +83,8 @@ async function initApp() {
 
         servicesDatabase = data.servicios;
         renderServices();
+        // Avisamos que la App está lista para la acción
+        console.log("Base de datos de " + songsDatabase.length + " canciones cargada.");
     } catch (e) {
         console.error("Error en carga:", e);
         showToast("Error de sincronización", "error");
@@ -158,6 +160,7 @@ function showServiceSongs(index) {
     
     renderSongList(currentSongList);
     switchView('home-view');
+    document.getElementById('service-controls').style.display = 'flex';
     document.getElementById('share-wa-btn').style.display = 'flex';
 }
 
@@ -216,6 +219,9 @@ function renderSongList(songs) {
                 ${song.BPM > 0 ? `<div class="bpm-badge"><i class="fas fa-metronome"></i> BPM ${song.BPM}</div>` : ''}
                 <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:4px 8px; border-radius:8px; font-size:0.75rem;">${song.Tono}</div>
             </div>
+            <div class="remove-song-btn" onclick="removeSongFromCurrentService(event, '${song.ID}')">
+                <i class="fas fa-minus-circle"></i>
+            </div>
         `;
         targetList.appendChild(card);
     });
@@ -223,7 +229,18 @@ function renderSongList(songs) {
 
 // 5. VISUALIZADOR
 function openSongByID(id) {
-    stopAutoScroll(); // Detiene cualquier scroll previo antes de abrir la nueva
+    // 1. Limpieza total de procesos previos
+    stopAutoScroll();
+    if (metronomeInterval) {
+        clearInterval(metronomeInterval);
+        metronomeInterval = null;
+    }
+    // Borramos la letra vieja visualmente para evitar "flasheados" de la canción anterior
+    const lyCont = document.getElementById('lyrics-container');
+    if (lyCont) {
+        lyCont.innerHTML = "<p class='loading-small'>Cargando letra...</p>";
+        lyCont.scrollTop = 0;
+    }
     currentSong = songsDatabase.find(s => s.ID.toString().trim() === id.toString().trim());
     if(!currentSong) return;
 
@@ -238,10 +255,6 @@ function openSongByID(id) {
     document.getElementById('view-title').innerText = currentSong.Titulo;
     document.getElementById('view-artist').innerText = currentSong.Artista;
     document.getElementById('current-key').innerText = currentSong.Tono;
-    
-    // Reset de Scroll
-    const lyCont = document.getElementById('lyrics-container');
-    if (lyCont) lyCont.scrollTop = 0;
 
     // Control de Flechas (Solo si entramos por un servicio con más de 1 canción)
     const nav = document.getElementById('setlist-nav');
@@ -336,20 +349,22 @@ function switchView(viewId) {
 }
 function goToDashboard() { switchView('dashboard-view'); }
 function closeSong() {
-scrollSpeed = 50; 
-    speedLevel = 1.0;
-    document.getElementById('speed-display').innerText = '1.0x';
-
-    // 1. Apagamos el metrónomo si está sonando
-    if(metronomeInterval) clearInterval(metronomeInterval);
-    
-    // 2. Apagamos el scroll automático
+    // 1. Matamos los procesos primero (Scroll y Metrónomo)
     stopAutoScroll();
-    
-    // 3. Regresamos a la vista de la lista (Home)
+    if (metronomeInterval) {
+        clearInterval(metronomeInterval);
+        metronomeInterval = null;
+    }
+
+    // 2. Reseteamos los valores de control de la canción
+    scrollSpeed = 50; 
+    speedLevel = 1.0;
+    const speedDisp = document.getElementById('speed-display');
+    if (speedDisp) speedDisp.innerText = '1.0x';
+
+    // 3. Regresamos a la vista de la lista
     switchView('home-view');
 }
-
 // 8. UTILIDADES
 function changeFontSize(val) {
     fontSize += val;
@@ -361,17 +376,25 @@ function toggleAutoScroll() { isScrolling ? stopAutoScroll() : startAutoScroll()
 
 function startAutoScroll() {
     isScrolling = true; 
-    document.getElementById('scroll-icon').className = 'fas fa-pause';
+    const icon = document.getElementById('scroll-icon');
+    if (icon) icon.className = 'fas fa-pause';
     
-    // Guardamos el timeout en una variable para poder cancelarlo
+    // Limpieza de seguridad antes de empezar
+    if (scrollTimeout) clearTimeout(scrollTimeout);
+    if (scrollInterval) clearInterval(scrollInterval);
+    
     scrollTimeout = setTimeout(() => {
+        // Verificamos si el usuario no canceló durante la espera de 1.5s
         if (!isScrolling) return; 
         
         scrollInterval = setInterval(() => {
             const container = document.getElementById('lyrics-container');
             if (container) {
                 container.scrollBy(0, 1);
-                if (Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight) stopAutoScroll();
+                // Si llega al final, se detiene solo
+                if (Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight) {
+                    stopAutoScroll();
+                }
             }
         }, scrollSpeed);
     }, 1500); 
@@ -379,9 +402,18 @@ function startAutoScroll() {
 
 function stopAutoScroll() { 
     isScrolling = false; 
-    document.getElementById('scroll-icon').className = 'fas fa-play'; 
-    clearInterval(scrollInterval); 
-    clearTimeout(scrollTimeout); 
+    
+    // 1. Detenemos todos los motores inmediatamente
+    if (scrollInterval) clearInterval(scrollInterval); 
+    if (scrollTimeout) clearTimeout(scrollTimeout); 
+    
+    // 2. Reset de variables de motor
+    scrollInterval = null;
+    scrollTimeout = null;
+
+    // 3. Cambiamos el icono SOLO si el elemento existe (esto evita que el código se trabe)
+    const icon = document.getElementById('scroll-icon');
+    if (icon) icon.className = 'fas fa-play'; 
 }
 
 function showToast(msg, type) {
@@ -752,4 +784,85 @@ function changeScrollSpeed(delta) {
         clearInterval(scrollInterval);
         startAutoScroll();
     }
+}
+// FUNCIONES DE EDICIÓN DE SERVICIO
+function openEditServiceModal() {
+    if (!activeServiceInfo) return;
+    
+    // Cambiamos el título y etiquetas del modal existente para reutilizarlo
+    document.querySelector('#service-modal h3').innerText = "Editar Servicio / Añadir Canciones";
+    
+    const getVal = (keyword) => {
+        const key = Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes(keyword.toLowerCase()));
+        return key ? activeServiceInfo[key] : "";
+    };
+
+    // Llenamos los campos con la info actual
+    document.getElementById('new-service-name').value = getVal('nombre');
+    let rawDate = getVal('fecha');
+    if (rawDate) {
+        let d = new Date(rawDate);
+        // Esto ajusta la fecha al formato YYYY-MM-DDTHH:MM que requiere el navegador
+        let yyyy = d.getFullYear();
+        let mm = String(d.getMonth() + 1).padStart(2, '0');
+        let dd = String(d.getDate()).padStart(2, '0');
+        let hh = String(d.getHours()).padStart(2, '0');
+        let min = String(d.getMinutes()).padStart(2, '0');
+        document.getElementById('new-service-date').value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+    }
+    document.getElementById('new-service-leader').value = getVal('líder') || getVal('director');
+    
+    // Cargamos las canciones actuales en la lista temporal de selección
+    tempSelectedSongs = currentSongList.map(s => ({ id: s.ID, titulo: s.Titulo }));
+    renderSelectedSongs();
+
+    // Cambiamos la función del botón "Guardar" del modal para que actualice en lugar de crear
+    const saveBtn = document.querySelector('#service-modal .save-btn');
+    saveBtn.innerText = "Actualizar Todo";
+    saveBtn.onclick = updateServiceData;
+
+    document.getElementById('service-modal').style.display = 'flex';
+}
+
+async function updateServiceData() {
+    const name = document.getElementById('new-service-name').value;
+    const date = document.getElementById('new-service-date').value;
+    const leader = document.getElementById('new-service-leader').value;
+    const idsString = tempSelectedSongs.map(s => s.id).join(',');
+
+    if (!name || !date) return showToast("Nombre y Fecha son obligatorios", "error");
+
+    showToast("Actualizando servicio...", "info");
+
+    const payload = {
+        action: 'update_metadata',
+        old_name: activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))].toString(),
+        nombre: name,
+        fecha: date,
+        ids: idsString,
+        lider: leader
+    };
+
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(payload)
+        });
+        showToast("¡Servicio actualizado!", "success");
+        setTimeout(() => location.reload(), 1500);
+    } catch (e) {
+        showToast("Error al actualizar", "error");
+    }
+}
+
+function removeSongFromCurrentService(event, songId) {
+    event.stopPropagation();
+    if (!confirm("¿Quitar esta canción del setlist?")) return;
+    
+    currentSongList = currentSongList.filter(s => s.ID !== songId);
+    currentServiceSongs = currentSongList.map(s => s.ID);
+    
+    renderSongList(currentSongList);
+    saveNewOrderToExcel(); // Reutiliza tu función existente para guardar el nuevo orden
 }

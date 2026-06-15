@@ -172,8 +172,10 @@
                 <div class="header-info">
                     <h2 id="list-title">Repertorio</h2>
                     <p id="list-subtitle">Cargando...</p>
-        <button id="share-wa-btn" class="share-wa-btn" onclick="shareSetlist()" style="display:none;"><i class="fab fa-whatsapp"></i></button>
-                </div>
+        <div class="service-controls" id="service-controls" style="display:none;">
+                <button id="edit-metadata-btn" class="premium-action-btn edit-btn" onclick="openEditServiceModal()"><i class="fas fa-edit"></i></button>
+                <button id="share-wa-btn" class="premium-action-btn wa-btn" onclick="shareSetlist()"><i class="fab fa-whatsapp"></i></button>
+            </div>
             </header>
 
             <div class="search-section">
