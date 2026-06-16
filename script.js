@@ -373,7 +373,7 @@ function setMode(mode) {
     renderLyrics();
 }
 
-function switchView(viewId) {
+function switchView(viewId, isBackAction = false) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     const target = document.getElementById(viewId);
     if (target) target.classList.add('active');
@@ -385,8 +385,12 @@ function switchView(viewId) {
         if (el) el.value = '';
     });
 
-    // Reiniciamos la lista visual para que muestre todo el contenido sin filtros
     if (viewId === 'home-view') renderSongList(currentSongList);
+
+    // Solo guardamos en el historial si NO es una acción de "atrás" y NO es el inicio
+    if (!isBackAction && viewId !== 'dashboard-view') {
+        history.pushState({ view: viewId }, "");
+    }
 }
 function goToDashboard() { switchView('dashboard-view'); }
 function closeSong() {
@@ -1034,6 +1038,8 @@ function getTransposedKeyName(originalKey, steps) {
 function showMinistrySchedule() {
     switchView('ministry-view');
     renderMinistryGrid();
+    // Registramos la entrada a esta vista en el historial
+    history.pushState({ view: 'ministry-view' }, "");
 }
 
 function renderMinistryGrid() {
@@ -1079,6 +1085,7 @@ function openAssignModal(slotID, dateText) {
     document.getElementById('input-assign-name').value = current.name === "Disponible" ? "" : current.name;
     document.getElementById('input-assign-note').value = current.note;
     document.getElementById('assign-leader-modal').style.display = 'flex';
+history.pushState({ modal: 'assign-leader-modal' }, "");
 }
 
 function closeAssignModal() {
@@ -1111,3 +1118,32 @@ ministryData[selectedDaySlot] = { name: name || "Disponible", note: note };
         showToast("Error de conexión", "error");
     }
 }
+
+// CEREBRO DE NAVEGACIÓN ATRÁS (Captura el botón físico del celular)
+window.onpopstate = function(event) {
+    // 1. Cerrar cualquier cuadro (Modal) que esté abierto
+    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal'];
+    for (let id of modales) {
+        let el = document.getElementById(id);
+        if (el && el.style.display === 'flex') {
+            el.style.display = 'none';
+            return; // Bloqueamos la salida para que solo cierre el modal
+        }
+    }
+
+    // 2. Manejar las Pantallas (Views)
+    const activeViewElement = document.querySelector('.view.active');
+    if (!activeViewElement) return;
+    const activeView = activeViewElement.id;
+
+    if (activeView === 'song-view') {
+        // Si estamos viendo una canción, detenemos motores y vamos a la lista
+        stopAutoScroll();
+        if (metronomeInterval) { clearInterval(metronomeInterval); metronomeInterval = null; }
+        switchView('home-view', true);
+    } 
+    else if (activeView === 'home-view' || activeView === 'favorites-view' || activeView === 'ministry-view') {
+        // Si estamos en cualquier lista o roles, volvemos al inicio (Dashboard)
+        goToDashboard();
+    }
+};
