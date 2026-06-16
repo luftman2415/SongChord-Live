@@ -742,3 +742,62 @@ body:not(.theme-day) .bpm-badge {
     background: var(--primary);
     color: white;
 }
+
+/* ESTILOS CALENDARIO MINISTERIAL */
+.ministry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    padding-bottom: 30px;
+}
+
+.ministry-card {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    border: 1px solid var(--glass-border);
+    transition: 0.3s;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.ministry-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.08); }
+
+.m-date { font-weight: 900; font-size: 1.2rem; color: var(--text-dark); margin-bottom: 2px; }
+.m-day { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 8px; }
+.m-leader { 
+    background: #f8fafc; 
+    color: #64748b; 
+    padding: 8px; 
+    border-radius: 10px; 
+    font-size: 0.75rem; 
+    font-weight: 800;
+    min-height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    border: 1px solid #edf2f7;
+    margin-top: 5px;
+}
+
+/* Estado cuando el líder asigna a alguien */
+.ministry-card[data-empty="false"] .m-leader {
+    background: var(--weaver-gradient);
+    color: white;
+    border: none;
+}
+
+.ministry-card.sunday { border-top: 4px solid #ef4444; }
+.ministry-card.saturday { border-top: 4px solid #3b82f6; }
+.ministry-card.wednesday { border-top: 4px solid #10b981; }
+
+.m-note { 
+    font-size: 0.6rem; 
+    color: #ef4444; 
+    font-weight: 800; 
+    margin-top: 4px; 
+    min-height: 10px;
+    text-transform: uppercase;
+}

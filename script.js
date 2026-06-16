@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxpQBWuAlKso716X514YogpM4LojiQ_0Hxv0Og12bS2FXEZ6T_5cg4L0_bCPuEYvX8l/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxo94eMyARAXfdbo0SdmwxZ13VZO055SIwM7WaqzYS3C8sikefO1pdAX2m_FfXg2x3c/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let activeServiceInfo = null; // Guardará el nombre del servicio abierto
@@ -8,6 +8,8 @@ let songsDatabase = [];
 let servicesDatabase = [];
 let currentSongList = [];
 let tempSelectedSongs = [];
+let selectedDaySlot = null; // Guardará el ID del día que estamos editando
+let ministryData = JSON.parse(localStorage.getItem('ministryAssignments')) || {};
 let currentServiceSongs = []; 
 let metronomeInterval = null;
 let isMetronomeSoundEnabled = false;
@@ -82,6 +84,26 @@ async function initApp() {
         });
 
         servicesDatabase = data.servicios;
+
+// Sincronizamos la programación ministerial con los datos del Excel
+        if(data.programacion) {
+            ministryData = {}; // Limpiamos local
+            data.programacion.forEach(row => {
+                // Buscamos las columnas por nombre exacto del Excel
+                const sId = row.SlotID || row.slotid;
+                const nom = row.Nombre || row.nombre;
+                const not = row.Nota || row.nota;
+                if(sId) ministryData[sId] = { name: nom, note: not };
+            });
+        }
+
+// Cargamos la programación desde el Excel (Hoja: programacion)
+        if(data.programacion) {
+            ministryData = {}; // Limpiamos local para usar nube
+            data.programacion.forEach(row => {
+                ministryData[row.SlotID] = { name: row.Nombre, note: row.Nota };
+            });
+        }
         renderServices();
         // Avisamos que la App está lista para la acción
         console.log("Base de datos de " + songsDatabase.length + " canciones cargada.");
@@ -1029,4 +1051,86 @@ function getTransposedKeyName(originalKey, steps) {
     let nuevoIndex = (indexBase + steps) % 12;
     if (nuevoIndex < 0) nuevoIndex += 12;
     return scale[nuevoIndex] + calidad;
+}
+
+function showMinistrySchedule() {
+    switchView('ministry-view');
+    renderMinistryGrid();
+}
+
+function renderMinistryGrid() {
+    const container = document.getElementById('ministry-grid-container');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    
+    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    document.getElementById('current-month-label').innerText = `${meses[month]} ${year}`;
+
+    let html = "";
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        let date = new Date(year, month, d);
+        let dayNum = date.getDay();
+        
+        if (dayNum === 0 || dayNum === 6 || dayNum === 3) {
+            const dayNames = ["DOMINGO", "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"];
+            const slotID = `${year}-${month + 1}-${d}`;
+            const assignment = ministryData[slotID] || { name: "Disponible", note: "" };
+            const isAvailable = (assignment.name === "Disponible");
+
+            html += `
+                <div class="ministry-card ${dayNum === 0 ? 'sunday' : (dayNum === 6 ? 'saturday' : 'wednesday')}" 
+                     onclick="openAssignModal('${slotID}', '${d} ${meses[month]}')"
+                     data-empty="${isAvailable}">
+                    <div class="m-day">${dayNames[dayNum]}</div>
+                    <div class="m-date">${d}</div>
+                    <div class="m-leader">${assignment.name}</div>
+                    <div class="m-note">${assignment.note}</div>
+                </div>`;
+        }
+    }
+    container.innerHTML = html;
+}
+
+function openAssignModal(slotID, dateText) {
+    selectedDaySlot = slotID;
+    document.getElementById('assign-date-text').innerText = dateText;
+    const current = ministryData[slotID] || { name: "", note: "" };
+    document.getElementById('input-assign-name').value = current.name === "Disponible" ? "" : current.name;
+    document.getElementById('input-assign-note').value = current.note;
+    document.getElementById('assign-leader-modal').style.display = 'flex';
+}
+
+function closeAssignModal() {
+    document.getElementById('assign-leader-modal').style.display = 'none';
+}
+
+async function saveAssignment() {
+    const name = document.getElementById('input-assign-name').value.trim();
+    const note = document.getElementById('input-assign-note').value.trim();
+    
+   ministryData[selectedDaySlot] = { name: name || "Disponible", note: note };
+    showToast("Sincronizando con nube...", "info");
+
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'update_ministry',
+                slotId: selectedDaySlot,
+                nombre: name || "Disponible",
+                nota: note
+            })
+        });
+        
+        localStorage.setItem('ministryAssignments', JSON.stringify(ministryData));
+        showToast("¡Programación guardada para todos!", "success");
+        closeAssignModal();
+        renderMinistryGrid();
+    } catch (e) {
+        showToast("Error de conexión", "error");
+    }
 }

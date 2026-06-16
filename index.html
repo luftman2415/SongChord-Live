@@ -43,9 +43,17 @@
                         <i class="fas fa-star"></i> Mis Canciones Favoritas
                     </button>
                 </div>
+                
                 <div class="section-header">
                     <span class="section-title-text">PRÓXIMOS SERVICIOS</span>
-                    <button class="add-service-btn" onclick="openServiceModal()"><i class="fas fa-plus"></i> Programar</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="add-service-btn" onclick="showMinistrySchedule()" style="color: var(--primary);">
+                            <i class="fas fa-calendar-alt"></i> Roles
+                        </button>
+                        <button class="add-service-btn" onclick="openServiceModal()">
+                            <i class="fas fa-plus"></i> Programar
+                        </button>
+                    </div>
                 </div>
 
                 <div id="services-container">
@@ -155,6 +163,44 @@
         </div>
     </div>
 </div>
+
+<!-- VISTA 4: CALENDARIO MINISTERIAL -->
+        <div id="ministry-view" class="view">
+            <header class="header-main song-header">
+                <button class="back-btn" onclick="goToDashboard()"><i class="fas fa-home"></i></button>
+                <div class="header-info">
+                    <h2>Programación Mensual</h2>
+                    <p id="current-month-label">Junio 2026</p>
+                </div>
+            </header>
+            
+            <div class="content-padding">
+                <div id="ministry-grid-container" class="ministry-grid">
+                    <!-- Aquí se cargarán los días automáticamente -->
+                    <p class="loading-small">Cargando roles del mes...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL PARA ASIGNAR LÍDER -->
+        <div id="assign-leader-modal" class="modal">
+            <div class="modal-content" style="max-width: 300px;">
+                <h3>Asignar Líder</h3>
+                <p id="assign-date-text" style="font-size: 0.8rem; color: var(--primary); margin-bottom: 15px; font-weight: 700;"></p>
+                <div class="input-group">
+                    <label>Nombre del Líder / Cantante</label>
+                    <input type="text" id="input-assign-name" placeholder="Ej: ZULEIMA">
+                </div>
+                <div class="input-group">
+                    <label>Observación (Opcional)</label>
+                    <input type="text" id="input-assign-note" placeholder="Ej: Devocional">
+                </div>
+                <div class="modal-actions">
+                    <button class="cancel-btn" onclick="closeAssignModal()">Cancelar</button>
+                    <button class="save-btn" onclick="saveAssignment()">Guardar</button>
+                </div>
+            </div>
+        </div>
 
 <!-- VISTA 3: FAVORITOS -->
         <div id="favorites-view" class="view">
