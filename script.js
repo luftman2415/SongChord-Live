@@ -479,13 +479,14 @@ function openServiceModal() {
     tempSelectedSongs = []; 
     renderSelectedSongs(); 
     
-    // Limpiamos el buscador del modal y ocultamos resultados viejos
+    // Limpiamos el buscador del modal
     const modalInput = document.getElementById('modal-song-search');
-    const modalResults = document.getElementById('modal-search-results');
     if (modalInput) modalInput.value = "";
-    if (modalResults) modalResults.style.display = 'none';
+    document.getElementById('modal-search-results').style.display = 'none';
 
     document.getElementById('service-modal').style.display = 'flex'; 
+    // Registramos la apertura para que no se salga de la App al dar atrás
+    history.pushState({ modal: 'service-modal' }, "");
 }
 
 function closeServiceModal() { 
@@ -560,6 +561,8 @@ document.getElementById('search-input').oninput = (e) => {
 
 function openSettingsModal() {
     document.getElementById('settings-modal').style.display = 'flex';
+    // Registramos que abrimos ajustes para que "Atrás" no cierre la App
+    history.pushState({ modal: 'settings-modal' }, "");
 }
 
 function closeSettingsModal() {
@@ -606,6 +609,8 @@ function confirmDeleteService(event, index) {
     
     document.getElementById('delete-service-info').innerText = `Vas a eliminar "${nombre}". Esta acción no se puede deshacer.`;
     document.getElementById('delete-confirm-modal').style.display = 'flex';
+    // Registramos que abrimos el cuadro de borrado
+    history.pushState({ modal: 'delete-confirm-modal' }, "");
 }
 
 // 2. Cerramos el modal
