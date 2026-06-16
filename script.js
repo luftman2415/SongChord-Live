@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzxd2266g_rV03qI03pRcYQ22kqtP07Oy6xQlW53k6kE4EgCGQQaZssT0UoZqupaiUY/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwhSfeuvmkGJAKJlMUhbXPveDEvRJC7nVV-2opujaRecr52O2Lj5jQIuvNI2EngTwH-/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let activeServiceInfo = null; // Guardará el nombre del servicio abierto
@@ -69,13 +69,17 @@ async function initApp() {
             ministryData = {}; 
             data.programacion.forEach(row => {
                 const getV = (k) => row[Object.keys(row).find(key => key.toLowerCase() === k.toLowerCase())];
-                let sId = getV('SlotID');
-                // Si Google Sheets envía una fecha, la convertimos a texto limpio (AAAA-M-D)
-                if (sId instanceof Date || !isNaN(Date.parse(sId))) {
-                    let d = new Date(sId);
-                    sId = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                let rawId = getV('SlotID');
+                
+                if(rawId) {
+                    // Si Google envía una fecha rara, la limpiamos a fondo
+                    let cleanId = rawId.toString();
+                    if (cleanId.includes("GMT") || cleanId.length > 15) {
+                        let d = new Date(rawId);
+                        cleanId = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                    }
+                    ministryData[cleanId.trim()] = { name: getV('Nombre') || "Disponible", note: getV('Nota') || "" };
                 }
-                if(sId) ministryData[sId.toString().trim()] = { name: getV('Nombre') || "Disponible", note: getV('Nota') || "" };
             });
         }
 
@@ -531,7 +535,8 @@ async function saveNewService() {
     const date = document.getElementById('new-service-date').value;
     const leader = document.getElementById('new-service-leader').value;
     if (!name || !date || tempSelectedSongs.length === 0) return showToast("Faltan datos", "error");
-    const idsString = tempSelectedSongs.map(s => s.id).join(',');
+    // Forzamos a que los IDs se guarden con una comilla simple al inicio (truco de Excel para texto)
+    const idsString = "'" + tempSelectedSongs.map(s => s.id).join(',');
     showToast("Guardando...", "info");
     try {
         await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ fecha: date, nombre: name, ids: idsString, lider: leader }) });
