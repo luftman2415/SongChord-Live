@@ -484,7 +484,27 @@ function openServiceModal() {
 
     document.getElementById('service-modal').style.display = 'flex'; 
 }
-function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
+
+function closeServiceModal() { 
+    // 1. Limpiamos los campos de texto del formulario
+    document.getElementById('new-service-name').value = "";
+    document.getElementById('new-service-date').value = "";
+    document.getElementById('new-service-leader').value = "";
+    document.getElementById('modal-song-search').value = "";
+
+    // 2. Ocultamos los resultados de búsqueda
+    document.getElementById('modal-search-results').style.display = 'none';
+
+    // 3. Vaciamos el setlist temporal
+    tempSelectedSongs = [];
+    renderSelectedSongs();
+
+    // 4. Cerramos visualmente
+    document.getElementById('service-modal').style.display = 'none'; 
+
+    // 5. Historial
+    if (history.state && history.state.modal) history.back();
+}
 
 function searchSongsForModal() {
     const term = document.getElementById('modal-song-search').value.toLowerCase();
