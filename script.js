@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxo94eMyARAXfdbo0SdmwxZ13VZO055SIwM7WaqzYS3C8sikefO1pdAX2m_FfXg2x3c/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzxd2266g_rV03qI03pRcYQ22kqtP07Oy6xQlW53k6kE4EgCGQQaZssT0UoZqupaiUY/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let activeServiceInfo = null; // Guardará el nombre del servicio abierto
@@ -41,72 +41,45 @@ async function initApp() {
         const response = await fetch(WEB_APP_URL);
         const data = await response.json();
         
-        // --- Lógica para elegir frase al azar ---
-        // --- Lógica para elegir mensaje y subtítulo al azar ---
-        // --- Lógica de Bienvenida Reparada ---
-        if(data.bienvenida && Array.isArray(data.bienvenida)) {
-            const elTitle = document.getElementById('welcome-text');
-            const elSub = document.getElementById('welcome-subtext');
-            
-            // Filtramos solo filas que tengan texto en la primera columna
-            const filasConTexto = data.bienvenida.filter(f => f[0] && f[0].toString().trim() !== "");
-            
-            // Elegimos una fila al azar de TODAS las disponibles
-            const indiceAzar = Math.floor(Math.random() * filasConTexto.length);
-            const seleccionada = filasConTexto[indiceAzar];
-            
-            // Ponemos el Título (Columna A)
-            elTitle.innerText = seleccionada[0]; 
-            
-            // Ponemos el Subtítulo (Columna B). Si está vacío, ponemos uno por defecto.
-            if (seleccionada[1] && seleccionada[1].toString().trim() !== "") {
-                elSub.innerText = seleccionada[1];
-            } else {
-                elSub.innerText = "Preparados para ministrar en Su presencia.";
+        // 1. Bienvenida
+        if(data.bienvenida) {
+            const elTitle = document.getElementById('welcome-text'), elSub = document.getElementById('welcome-subtext');
+            const filas = data.bienvenida.filter(f => f[0] && f[0].toString().trim() !== "");
+            if(filas.length > 0) {
+                const sel = filas[Math.floor(Math.random() * filas.length)];
+                elTitle.innerText = sel[0]; elSub.innerText = sel[1] || "Preparados para ministrar.";
             }
         }
 
-        // Mapeo de canciones (Hoja 1)
+        // 2. Canciones
         songsDatabase = data.canciones.map(item => {
-            const find = (key) => {
-                const k = Object.keys(item).find(k => k.toLowerCase().replace(/_/g, ' ').trim() === key.toLowerCase().trim());
-                return k ? item[k] : "";
-            };
+            const find = (k) => item[Object.keys(item).find(key => key.toLowerCase().replace(/_/g, ' ').trim() === k.toLowerCase())] || "";
             return {
-                ID: find('ID').toString().trim(), 
-                Titulo: find('Titulo') || "Sin Título",
-                Artista: find('Artista') || "Desconocido",
-                Tono: find('Tono') || "C",
-                BPM: find('BPM') || 0,
-                Letra_Musicos: find('Letra Musicos') || find('Musicos') || "",
+                ID: find('ID').toString().trim(), Titulo: find('Titulo') || "Sin Título",
+                Artista: find('Artista') || "Desconocido", Tono: find('Tono') || "C",
+                BPM: find('BPM') || 0, Letra_Musicos: find('Letra Musicos') || find('Musicos') || "",
                 Letra_Voces: find('Letra Voces') || find('Voces') || ""
             };
         });
 
-        servicesDatabase = data.servicios;
+        servicesDatabase = data.servicios || [];
 
-// Sincronizamos la programación ministerial con los datos del Excel
+        // 3. CARGA DE PROGRAMACIÓN (HOJA 4) - ¡Aquí está la solución!
         if(data.programacion) {
-            ministryData = {}; // Limpiamos local
+            ministryData = {}; 
             data.programacion.forEach(row => {
-                // Buscamos las columnas por nombre exacto del Excel
-                const sId = row.SlotID || row.slotid;
-                const nom = row.Nombre || row.nombre;
-                const not = row.Nota || row.nota;
-                if(sId) ministryData[sId] = { name: nom, note: not };
+                const getV = (k) => row[Object.keys(row).find(key => key.toLowerCase() === k.toLowerCase())];
+                let sId = getV('SlotID');
+                // Si Google Sheets envía una fecha, la convertimos a texto limpio (AAAA-M-D)
+                if (sId instanceof Date || !isNaN(Date.parse(sId))) {
+                    let d = new Date(sId);
+                    sId = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+                }
+                if(sId) ministryData[sId.toString().trim()] = { name: getV('Nombre') || "Disponible", note: getV('Nota') || "" };
             });
         }
 
-// Cargamos la programación desde el Excel (Hoja: programacion)
-        if(data.programacion) {
-            ministryData = {}; // Limpiamos local para usar nube
-            data.programacion.forEach(row => {
-                ministryData[row.SlotID] = { name: row.Nombre, note: row.Nota };
-            });
-        }
         renderServices();
-        // Avisamos que la App está lista para la acción
-        console.log("Base de datos de " + songsDatabase.length + " canciones cargada.");
     } catch (e) {
         console.error("Error en carga:", e);
         showToast("Error de sincronización", "error");
@@ -1110,8 +1083,7 @@ function closeAssignModal() {
 async function saveAssignment() {
     const name = document.getElementById('input-assign-name').value.trim();
     const note = document.getElementById('input-assign-note').value.trim();
-    
-   ministryData[selectedDaySlot] = { name: name || "Disponible", note: note };
+ministryData[selectedDaySlot] = { name: name || "Disponible", note: note };
     showToast("Sincronizando con nube...", "info");
 
     try {
@@ -1120,15 +1092,15 @@ async function saveAssignment() {
             mode: 'no-cors',
             body: JSON.stringify({
                 action: 'update_ministry',
-                slotId: selectedDaySlot,
+                slotId: selectedDaySlot.toString(), // Guardamos como texto puro
                 nombre: name || "Disponible",
                 nota: note
             })
         });
         
-        localStorage.setItem('ministryAssignments', JSON.stringify(ministryData));
-        showToast("¡Programación guardada para todos!", "success");
-        closeAssignModal();
+        showToast("¡Guardado en la nube!", "success");
+        closeAssignModal();    
+   
         renderMinistryGrid();
     } catch (e) {
         showToast("Error de conexión", "error");
