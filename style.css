@@ -457,14 +457,20 @@ body.theme-ocean .lyrics-container {
 
 /* El icono de las 3 líneas para arrastrar */
 .drag-handle {
-    color: #cbd5e1;
-    margin-left: 10px;
+    color: var(--primary);
+    opacity: 0.3; /* Lo hacemos sutil */
+    margin-left: 12px;
     padding: 10px 5px;
     cursor: grab;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s;
 }
 
-.drag-handle:active {
+/* Al tocar o pasar el mouse el icono brilla más */
+.drag-handle:hover, .drag-handle:active {
+    opacity: 1;
     cursor: grabbing;
 }
 

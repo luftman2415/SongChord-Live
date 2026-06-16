@@ -236,6 +236,7 @@ function renderSongList(songs) {
             <div class="remove-song-btn" onclick="removeSongFromCurrentService(event, '${song.ID}')">
                 <i class="fas fa-minus-circle"></i>
             </div>
+            ${currentServiceSongs.length > 0 ? `<div class="drag-handle"><i class="fas fa-bars"></i></div>` : ''}
         `;
         targetList.appendChild(card);
     });
