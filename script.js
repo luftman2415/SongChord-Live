@@ -23,6 +23,8 @@ let scrollInterval;
 let scrollTimeout; // Esta variable evitará que el scroll "salte" a otras canciones
 let scrollSpeed = 50; 
 let speedLevel = 1.0;
+let tempThemeBackup = 'day'; // Memoria para revertir temas con la X
+let lastListView = 'home-view'; // Recordará si venías de Favoritos, Repertorio o Roles
 
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -256,19 +258,13 @@ function openSongByID(id) {
     currentSong = songsDatabase.find(s => s.ID.toString().trim() === id.toString().trim());
     if(!currentSong) return;
 
-    // Reinicios básicos
-    // Buscamos si ya habías cambiado el tono de esta canción antes
-    // LÓGICA DE CONTEXTO:
-    if (activeServiceInfo) {
-        // Si estamos en un servicio, buscamos la memoria específica de este servicio + canción
-        const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
-        const contextID = 'transp_' + serviceName + '_' + id;
-        currentTransposition = parseInt(localStorage.getItem(contextID)) || 0;
-    } else {
-        // Si es el repertorio general, SIEMPRE tono original (0)
-        currentTransposition = 0;
-    } 
-    fontSize = 16; 
+    // GUARDAR ORIGEN: Antes de entrar a la canción, anotamos en qué lista estábamos
+    const activeView = document.querySelector('.view.active');
+    if (activeView && activeView.id !== 'song-view') {
+        lastListView = activeView.id;
+    }
+
+    // Reinicios básicos 
     currentMode = 'musicos';
     
     // UI - Cabecera
@@ -411,7 +407,8 @@ function closeSong() {
     // Refrescamos la lista para que los distintivos (badges) de tono se actualicen de inmediato
     renderSongList(currentSongList);
     
-    switchView('home-view');
+    // Volvemos a la lista de la que veníamos (Favoritos, Repertorio o Roles)
+    switchView(lastListView, true);
 }
 // 8. UTILIDADES
 function changeFontSize(val) {
@@ -1142,13 +1139,10 @@ window.onpopstate = function(event) {
     const activeView = activeViewElement.id;
 
     if (activeView === 'song-view') {
-        // Si estamos viendo una canción, detenemos motores y vamos a la lista
         stopAutoScroll();
         if (metronomeInterval) { clearInterval(metronomeInterval); metronomeInterval = null; }
-        switchView('home-view', true);
-    } 
-    else if (activeView === 'home-view' || activeView === 'favorites-view' || activeView === 'ministry-view') {
-        // Si estamos en cualquier lista o roles, volvemos al inicio (Dashboard)
+        switchView(lastListView, true);
+    } else if (activeView === 'home-view' || activeView === 'favorites-view' || activeView === 'ministry-view') {
         goToDashboard();
     }
 };
