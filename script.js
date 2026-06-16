@@ -376,7 +376,18 @@ function setMode(mode) {
 
 function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(viewId).classList.add('active');
+    const target = document.getElementById(viewId);
+    if (target) target.classList.add('active');
+
+    // LIMPIEZA DE BUSCADORES
+    const buscadores = ['search-input', 'search-favorites', 'modal-song-search'];
+    buscadores.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+
+    // Reiniciamos la lista visual para que muestre todo el contenido sin filtros
+    if (viewId === 'home-view') renderSongList(currentSongList);
 }
 function goToDashboard() { switchView('dashboard-view'); }
 function closeSong() {
@@ -461,7 +472,18 @@ function showToast(msg, type) {
 }
 
 // 9. MODAL & GUARDADO
-function openServiceModal() { tempSelectedSongs = []; renderSelectedSongs(); document.getElementById('service-modal').style.display = 'flex'; }
+function openServiceModal() { 
+    tempSelectedSongs = []; 
+    renderSelectedSongs(); 
+    
+    // Limpiamos el buscador del modal y ocultamos resultados viejos
+    const modalInput = document.getElementById('modal-song-search');
+    const modalResults = document.getElementById('modal-search-results');
+    if (modalInput) modalInput.value = "";
+    if (modalResults) modalResults.style.display = 'none';
+
+    document.getElementById('service-modal').style.display = 'flex'; 
+}
 function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
 
 function searchSongsForModal() {
