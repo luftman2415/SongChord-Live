@@ -102,7 +102,6 @@
 <!-- MODAL DE AJUSTES VISUALES -->
         <div id="settings-modal" class="modal">
             <div class="modal-content">
-            <button class="modal-close-x" onclick="closeSettingsModal()"><i class="fas fa-times"></i></button>
                 <h3>Personalización</h3>
                 <p style="font-size: 0.8rem; color: #666; margin-bottom: 15px;">Elige el ambiente visual que más te guste:</p>
                 
@@ -143,6 +142,19 @@
                 </div>
             </div>
         </div>
+
+<!-- MODAL SELECTOR DE TONO -->
+<div id="key-modal" class="modal">
+    <div class="modal-content" style="max-width: 280px; padding: 20px;">
+        <h3 style="margin-bottom:15px; text-align:center; font-size: 1.2rem;">Seleccionar Tono</h3>
+        <div id="key-list-options" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; max-height: 350px; overflow-y: auto; padding: 5px;">
+            <!-- Generado por JS -->
+        </div>
+        <div class="modal-actions">
+            <button class="cancel-btn" onclick="closeKeyModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
 
 <!-- VISTA 3: FAVORITOS -->
         <div id="favorites-view" class="view">
@@ -210,7 +222,7 @@
                 <div class="tool-group">
                     <div class="tool-circle-group">
                         <button class="circle-btn" onclick="changeKey(-1)"><i class="fas fa-minus"></i></button>
-                        <span id="current-key">C</span>
+                        <span id="current-key" onclick="openKeyModal()" style="cursor:pointer; text-decoration: underline; min-width: 30px; display: inline-block;">C</span>
                         <button class="circle-btn" onclick="changeKey(1)"><i class="fas fa-plus"></i></button>
                     </div>
                 </div>

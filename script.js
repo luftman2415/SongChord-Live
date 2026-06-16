@@ -221,7 +221,16 @@ function renderSongList(songs) {
             </div>
             <div class="song-badges">
                 ${song.BPM > 0 ? `<div class="bpm-badge"><i class="fas fa-metronome"></i> BPM ${song.BPM}</div>` : ''}
-                <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:4px 8px; border-radius:8px; font-size:0.75rem;">${song.Tono}</div>
+                <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:4px 8px; border-radius:8px; font-size:0.75rem;">
+    ${(() => {
+        if (activeServiceInfo) {
+            const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+            const savedT = parseInt(localStorage.getItem('transp_' + serviceName + '_' + song.ID)) || 0;
+            return getTransposedKeyName(song.Tono, savedT);
+        }
+        return song.Tono;
+    })()}
+</div>
             </div>
             <div class="remove-song-btn" onclick="removeSongFromCurrentService(event, '${song.ID}')">
                 <i class="fas fa-minus-circle"></i>
@@ -249,7 +258,17 @@ function openSongByID(id) {
     if(!currentSong) return;
 
     // Reinicios básicos
-    currentTransposition = 0; 
+    // Buscamos si ya habías cambiado el tono de esta canción antes
+    // LÓGICA DE CONTEXTO:
+    if (activeServiceInfo) {
+        // Si estamos en un servicio, buscamos la memoria específica de este servicio + canción
+        const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+        const contextID = 'transp_' + serviceName + '_' + id;
+        currentTransposition = parseInt(localStorage.getItem(contextID)) || 0;
+    } else {
+        // Si es el repertorio general, SIEMPRE tono original (0)
+        currentTransposition = 0;
+    } 
     fontSize = 16; 
     currentMode = 'musicos';
     
@@ -258,7 +277,8 @@ function openSongByID(id) {
     document.getElementById('btn-voces').classList.remove('active');
     document.getElementById('view-title').innerText = currentSong.Titulo;
     document.getElementById('view-artist').innerText = currentSong.Artista;
-    document.getElementById('current-key').innerText = currentSong.Tono;
+    // Mostramos el tono transportado en la cabecera
+    document.getElementById('current-key').innerText = getTransposedKeyName(currentSong.Tono, currentTransposition);
 
     // Control de Flechas (Solo si entramos por un servicio con más de 1 canción)
     const nav = document.getElementById('setlist-nav');
@@ -337,7 +357,14 @@ function changeKey(val) {
         }
     }
     renderLyrics();
-}
+
+    // Solo guardamos el tono si estamos dentro de un servicio
+    if (currentSong && activeServiceInfo) {
+        const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+        const contextID = 'transp_' + serviceName + '_' + currentSong.ID;
+        localStorage.setItem(contextID, currentTransposition);
+    }
+}    
 
 // 7. NAVEGACIÓN Y MODOS
 function setMode(mode) {
@@ -347,21 +374,11 @@ function setMode(mode) {
     renderLyrics();
 }
 
-function switchView(viewId, isBackAction = false) {
+function switchView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    const target = document.getElementById(viewId);
-    if (target) target.classList.add('active');
-    
-    // Solo guardamos en el historial si NO venimos de darle al botón "atrás"
-    if (!isBackAction && viewId !== 'dashboard-view') {
-        history.pushState({ view: viewId }, "");
-    }
+    document.getElementById(viewId).classList.add('active');
 }
-
-function goToDashboard() { 
-    // Al ir al inicio, limpiamos estados anteriores para que no se cierre la App
-    switchView('dashboard-view', true); 
-}
+function goToDashboard() { switchView('dashboard-view'); }
 function closeSong() {
     // 1. Matamos los procesos primero (Scroll y Metrónomo)
     stopAutoScroll();
@@ -377,6 +394,9 @@ function closeSong() {
     if (speedDisp) speedDisp.innerText = '1.0x';
 
     // 3. Regresamos a la vista de la lista
+    // Refrescamos la lista para que los distintivos (badges) de tono se actualicen de inmediato
+    renderSongList(currentSongList);
+    
     switchView('home-view');
 }
 // 8. UTILIDADES
@@ -441,12 +461,8 @@ function showToast(msg, type) {
 }
 
 // 9. MODAL & GUARDADO
-function openServiceModal() { history.pushState({ modal: 'service-modal' }, ""); tempSelectedSongs = []; renderSelectedSongs(); document.getElementById('service-modal').style.display = 'flex'; }
-function closeServiceModal() { 
-    document.getElementById('service-modal').style.display = 'none'; 
-    // Si el usuario cerró el modal manualmente, quitamos ese rastro del historial
-    if (history.state && history.state.modal) history.back();
-}
+function openServiceModal() { tempSelectedSongs = []; renderSelectedSongs(); document.getElementById('service-modal').style.display = 'flex'; }
+function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
 
 function searchSongsForModal() {
     const term = document.getElementById('modal-song-search').value.toLowerCase();
@@ -498,12 +514,10 @@ document.getElementById('search-input').oninput = (e) => {
 
 function openSettingsModal() {
     document.getElementById('settings-modal').style.display = 'flex';
-    history.pushState({ modal: 'settings-modal' }, "");
 }
 
 function closeSettingsModal() {
     document.getElementById('settings-modal').style.display = 'none';
-    if (history.state && history.state.modal === 'settings-modal') history.back();
 }
 
 function setTheme(themeName) {
@@ -546,7 +560,6 @@ function confirmDeleteService(event, index) {
     
     document.getElementById('delete-service-info').innerText = `Vas a eliminar "${nombre}". Esta acción no se puede deshacer.`;
     document.getElementById('delete-confirm-modal').style.display = 'flex';
-history.pushState({ modal: 'delete-modal' }, "");
 }
 
 // 2. Cerramos el modal
@@ -757,7 +770,10 @@ function shareSetlist() {
     mensaje += `*CANCIONES:*\n`;
 
     currentSongList.forEach((song, i) => {
-        mensaje += `${i + 1}. ${song.Titulo} (${song.Tono})\n`;
+        const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+        const savedT = parseInt(localStorage.getItem('transp_' + serviceName + '_' + song.ID)) || 0;
+        const tonoParaWA = getTransposedKeyName(song.Tono, savedT);
+        mensaje += `${i + 1}. ${song.Titulo} (${tonoParaWA})\n`;
     });
 
     mensaje += `\n_Enviado desde SongChord Live Pro_`;
@@ -808,7 +824,6 @@ function changeScrollSpeed(delta) {
 }
 // FUNCIONES DE EDICIÓN DE SERVICIO
 function openEditServiceModal() {
-history.pushState({ modal: 'service-modal' }, "");
     if (!activeServiceInfo) return;
     
     // Cambiamos el título y etiquetas del modal existente para reutilizarlo
@@ -907,29 +922,69 @@ function openEditServiceModalFromDash(event, index) {
     openEditServiceModal(); // Abrimos el modal que ya teníamos
 }
 
-// CEREBRO DE NAVEGACIÓN ATRÁS (VERSIÓN 2.0)
-window.onpopstate = function(event) {
-    // 1. Cerrar Modales
-    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal'];
-    for (let id of modales) {
-        let el = document.getElementById(id);
-        if (el && el.style.display === 'flex') {
-            el.style.display = 'none';
-            return;
-        }
-    }
+function openKeyModal() {
+    const container = document.getElementById('key-list-options');
+    if (!currentSong || !container) return;
 
-    // 2. Manejar Vistas
-    const activeView = document.querySelector('.view.active').id;
+    const originalKey = currentSong.Tono || "C";
+    const normalize = (c) => c.replace('Db','C#').replace('Eb','D#').replace('Gb','F#').replace('Ab','G#').replace('Bb','A#');
+    
+    let baseMatch = originalKey.match(/^([A-G][#b]?)/);
+    let baseOriginal = baseMatch ? normalize(baseMatch[1]) : "C";
+    let indexOriginal = scale.indexOf(baseOriginal);
 
-    if (activeView === 'song-view') {
-        // Si estamos en canción, cerramos procesos y vamos a la lista (Home)
-        stopAutoScroll();
-        if (metronomeInterval) { clearInterval(metronomeInterval); metronomeInterval = null; }
-        switchView('home-view', true);
-    } 
-    else if (activeView === 'home-view' || activeView === 'favorites-view') {
-        // Si estamos en una lista, vamos al Dashboard
-        goToDashboard();
-    }
-};
+    container.innerHTML = scale.map((nota, i) => {
+        let steps = i - indexOriginal;
+        let isSelected = (steps === currentTransposition);
+        
+        // Si el índice actual es el original, le sumamos la palabra
+        let label = (i === indexOriginal) ? nota + " - Original" : nota;
+        
+        return `<div class="key-option-item ${isSelected ? 'selected' : ''}" onclick="selectKey(${steps})">${label}</div>`;
+    }).join('');
+    
+    document.getElementById('key-modal').style.display = 'flex';
+    history.pushState({ modal: 'key-modal' }, "");
+}
+function closeKeyModal() {
+    document.getElementById('key-modal').style.display = 'none';
+    if (history.state && history.state.modal === 'key-modal') history.back();
+}
+
+function selectKey(steps) {
+    currentTransposition = steps;
+    changeKey(0); // Refresca y guarda
+    closeKeyModal();
+}
+
+function applySettings() {
+    // 1. Identificamos qué tema probó el usuario y dejó marcado
+    let selectedTheme = 'day';
+    if (document.getElementById('theme-night').classList.contains('active')) selectedTheme = 'night';
+    else if (document.getElementById('theme-forest').classList.contains('active')) selectedTheme = 'forest';
+    else if (document.getElementById('theme-ocean').classList.contains('active')) selectedTheme = 'ocean';
+
+    // 2. GUARDAR: Aquí es cuando la App escribe en la memoria del dispositivo
+    localStorage.setItem('userTheme', selectedTheme);
+    tempThemeBackup = selectedTheme; 
+
+    showToast("Tema aplicado con éxito", "success");
+
+    // 3. Cerramos el modal
+    document.getElementById('settings-modal').style.display = 'none';
+    if (history.state && history.state.modal === 'settings-modal') history.back();
+}
+
+function getTransposedKeyName(originalKey, steps) {
+    if (steps === 0 || !originalKey) return originalKey;
+    const normalize = (c) => c.replace('Db','C#').replace('Eb','D#').replace('Gb','F#').replace('Ab','G#').replace('Bb','A#');
+    let partes = originalKey.match(/^([A-G][#b]?)(.*)/);
+    if (!partes) return originalKey;
+    let notaBase = partes[1];
+    let calidad = partes[2];
+    let indexBase = scale.indexOf(normalize(notaBase));
+    if (indexBase === -1) return originalKey;
+    let nuevoIndex = (indexBase + steps) % 12;
+    if (nuevoIndex < 0) nuevoIndex += 12;
+    return scale[nuevoIndex] + calidad;
+}
