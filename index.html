@@ -137,7 +137,7 @@
                 </div>
 
                 <div class="modal-actions">
-                    <button class="save-btn" onclick="closeSettingsModal()">Aplicar y Cerrar</button>
+                    <button class="save-btn" onclick="applySettings()">Aplicar y Cerrar</button>
                 </div>
             </div>
         </div>
@@ -205,7 +205,18 @@
                 </div>
             </div>
         </div>
-
+<!-- MODAL NOTAS DE INTERPRETACIÓN -->
+        <div id="note-modal" class="modal">
+            <div class="modal-content" style="max-width: 300px;">
+                <h3 id="note-modal-title">Notas de la Canción</h3>
+                <p style="font-size: 0.7rem; color: #666; margin-bottom: 10px;">Instrucciones específicas para este servicio.</p>
+                <textarea id="interpret-note-text" style="width: 100%; h-32; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; font-size: 0.9rem; height: 120px; resize: none;" placeholder="Ej: Empezar solo piano, la batería entra en el Coro 2..."></textarea>
+                <div class="modal-actions">
+                    <button class="cancel-btn" onclick="closeNoteModal()">Cerrar</button>
+                    <button class="save-btn" style="background: #f59e0b;" onclick="saveInterpretNote()">Guardar Nota</button>
+                </div>
+            </div>
+        </div>
 <!-- VISTA 3: FAVORITOS -->
         <div id="favorites-view" class="view">
             <header class="header-main song-header">
@@ -295,6 +306,13 @@
                         <button class="circle-btn" onclick="changeScrollSpeed(1)"><i class="fas fa-minus"></i></button>
                         <span id="speed-display">1.0x</span>
                         <button class="circle-btn" onclick="changeScrollSpeed(-1)"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+<!-- GRUPO 5: ACCIONES EXTRA -->
+                <div class="tool-group">
+                    <div class="tool-circle-group">
+                        <button class="circle-btn" onclick="openInterpretNote()" title="Notas"><i class="fas fa-sticky-note"></i></button>
+                        <button class="circle-btn" onclick="preparePrint()" title="Imprimir"><i class="fas fa-print"></i></button>
                     </div>
                 </div>
                     <div class="metronome-box">

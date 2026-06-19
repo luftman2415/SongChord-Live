@@ -25,6 +25,7 @@ let scrollSpeed = 50;
 let speedLevel = 1.0;
 let tempThemeBackup = 'day'; // Memoria para revertir temas con la X
 let lastListView = 'home-view'; // Recordará si venías de Favoritos, Repertorio o Roles
+let wakeLock = null; // Protector de pantalla encendida
 
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -108,7 +109,18 @@ function renderServices() {
         };
 
         const fechaRaw = getVal('fecha');
-        const fecha = fechaRaw ? fechaRaw.toString().split('T')[0] : "Pendiente";
+        let fecha = "Pendiente";
+        if (fechaRaw) {
+            const d = new Date(fechaRaw);
+            fecha = d.toLocaleString('es-ES', { 
+                weekday: 'short', 
+                day: '2-digit', 
+                month: 'short', 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                hour12: true 
+            }).replace('.', '').toUpperCase();
+        }
         const nombre = getVal('nombre') || "Servicio";
         const lider = getVal('líder') || getVal('director') || "Por definir";
         
@@ -243,7 +255,7 @@ function renderSongList(songs) {
 }
 
 // 5. VISUALIZADOR
-function openSongByID(id) {
+async function openSongByID(id) {
     // 1. Limpieza total de procesos previos
     stopAutoScroll();
     if (metronomeInterval) {
@@ -291,6 +303,10 @@ function openSongByID(id) {
     
     // Encendemos el metrónomo
     startMetronome(currentSong.BPM);
+// ACTIVAR MODO ESCENARIO (PANTALLA SIEMPRE ENCENDIDA)
+    if ('wakeLock' in navigator) {
+        try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
 }
 function renderLyrics() {
     if (!currentSong) return;
@@ -320,6 +336,13 @@ function renderLyrics() {
         processed = processed.replace(/\[.*?\]/g, '');
     }
 
+// Si hay una nota guardada, la mostramos en una cajita elegante arriba de la letra
+    const savedNote = localStorage.getItem('note_global_' + currentSong.ID);
+    if (savedNote && savedNote.trim() !== "") {
+        processed = `<div style="background: #fff9db; border-left: 4px solid #f59e0b; padding: 12px; margin-bottom: 20px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #856404; line-height: 1.4;">
+            <i class="fas fa-info-circle"></i> <b>NOTA:</b> ${savedNote}
+        </div>` + processed;
+    }
     container.innerHTML = processed;
 }
 
@@ -407,6 +430,10 @@ function closeSong() {
     // 3. Regresamos a la vista de la lista
     // Refrescamos la lista para que los distintivos (badges) de tono se actualicen de inmediato
     renderSongList(currentSongList);
+// DESACTIVAR MODO ESCENARIO: Permite que la pantalla vuelva a su ahorro de energía normal
+    if (wakeLock !== null) {
+        wakeLock.release().then(() => { wakeLock = null; });
+    }
     
     // Volvemos a la lista de la que veníamos (Favoritos, Repertorio o Roles)
     switchView(lastListView, true);
@@ -502,10 +529,11 @@ function closeServiceModal() {
     renderSelectedSongs();
 
     // 4. Cerramos visualmente
-    document.getElementById('service-modal').style.display = 'none'; 
-
-    // 5. Historial
-    if (history.state && history.state.modal) history.back();
+    if (history.state && history.state.modal === 'service-modal') {
+        history.back();
+    } else {
+        document.getElementById('service-modal').style.display = 'none';
+    }
 }
 
 function searchSongsForModal() {
@@ -613,8 +641,12 @@ function confirmDeleteService(event, index) {
 
 // 2. Cerramos el modal
 function closeDeleteModal() {
-    document.getElementById('delete-confirm-modal').style.display = 'none';
     serviceToDelete = null;
+    if (history.state && history.state.modal === 'delete-modal') {
+        history.back();
+    } else {
+        document.getElementById('delete-confirm-modal').style.display = 'none';
+    }
 }
 
 // 3. Esta función envía la orden REAL al Excel
@@ -809,13 +841,32 @@ function shareSetlist() {
     // Extraer datos del servicio
     const get = (k) => activeServiceInfo[Object.keys(activeServiceInfo).find(key => key.toLowerCase().includes(k))];
     const nombre = get('nombre') || "Servicio";
-    const fecha = get('fecha') ? get('fecha').toString().split('T')[0] : "";
+    const rawDate = get('fecha');
     const lider = get('líder') || get('director') || "Por definir";
 
-    // Armar el mensaje con negritas y emojis para WhatsApp
-    let mensaje = `🎶 *SETLIST: ${nombre.toUpperCase()}*\n`;
-    mensaje += `📅 *FECHA:* ${fecha}\n`;
-    mensaje += `🎤 *LÍDER:* ${lider}\n\n`;
+    // FORMATEO DE FECHA Y HORA (Español Latino + AM/PM)
+    let fechaTexto = "Pendiente";
+    if (rawDate) {
+        const d = new Date(rawDate);
+        fechaTexto = d.toLocaleString('es-ES', { 
+            weekday: 'short', 
+            day: '2-digit', 
+            month: 'short', 
+            hour: '2-digit', 
+            minute: '2-digit', 
+            hour12: true 
+        }).replace('.', '').toUpperCase(); // Ejemplo: MAR 21 JUN 09:00 AM
+    }
+
+    // Armar el mensaje con estilo renovado
+    // Usamos códigos Unicode para evitar que el Bloc de Notas dañe los iconos
+    const iconGuitarra = "\uD83C\uDFB8"; // Guitarra
+    const iconCalendario = "\uD83D\uDCC5"; // Calendario
+    const iconMicrofono = "\uD83C\uDFA4"; // Micrófono
+
+    let mensaje = `${iconGuitarra} *SETLIST: ${nombre.toUpperCase()}*\n`;
+    mensaje += `${iconCalendario} *FECHA:* ${fechaTexto}\n`;
+    mensaje += `${iconMicrofono} *LÍDER:* ${lider}\n\n`;
     mensaje += `*CANCIONES:*\n`;
 
     currentSongList.forEach((song, i) => {
@@ -996,8 +1047,11 @@ function openKeyModal() {
     history.pushState({ modal: 'key-modal' }, "");
 }
 function closeKeyModal() {
-    document.getElementById('key-modal').style.display = 'none';
-    if (history.state && history.state.modal === 'key-modal') history.back();
+    if (history.state && history.state.modal === 'key-modal') {
+        history.back();
+    } else {
+        document.getElementById('key-modal').style.display = 'none';
+    }
 }
 
 function selectKey(steps) {
@@ -1018,10 +1072,11 @@ function applySettings() {
     tempThemeBackup = selectedTheme; 
 
     showToast("Tema aplicado con éxito", "success");
-
-    // 3. Cerramos el modal
-    document.getElementById('settings-modal').style.display = 'none';
-    if (history.state && history.state.modal === 'settings-modal') history.back();
+    if (history.state && history.state.modal === 'settings-modal') {
+        history.back();
+    } else {
+        document.getElementById('settings-modal').style.display = 'none';
+    }
 }
 
 function getTransposedKeyName(originalKey, steps) {
@@ -1125,7 +1180,7 @@ ministryData[selectedDaySlot] = { name: name || "Disponible", note: note };
 // CEREBRO DE NAVEGACIÓN ATRÁS (Captura el botón físico del celular)
 window.onpopstate = function(event) {
     // 1. Cerrar cualquier cuadro (Modal) que esté abierto
-    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal'];
+    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal', 'note-modal'];
     for (let id of modales) {
         let el = document.getElementById(id);
         if (el && el.style.display === 'flex') {
@@ -1147,3 +1202,39 @@ window.onpopstate = function(event) {
         goToDashboard();
     }
 };
+
+// --- FUNCIONES DE NOTAS E IMPRESIÓN ---
+function openInterpretNote() {
+    if (!currentSong) return;
+    const noteID = 'note_global_' + currentSong.ID;
+    document.getElementById('interpret-note-text').value = localStorage.getItem(noteID) || "";
+    document.getElementById('note-modal').style.display = 'flex';
+    // Avisamos al sistema que hay un cuadro abierto
+    history.pushState({ modal: 'note-modal' }, "");
+}
+
+function closeNoteModal() {
+    // Simplemente cerramos el cuadro. El "Portero" (onpopstate) se encargará del resto si usas el botón atrás.
+    if (history.state && history.state.modal === 'note-modal') {
+        history.back(); // El portero (onpopstate) se encargará de ocultarlo
+    } else {
+        document.getElementById('note-modal').style.display = 'none';
+    }
+}
+
+function saveInterpretNote() {
+    const noteID = 'note_global_' + currentSong.ID;
+    const val = document.getElementById('interpret-note-text').value.trim();
+    if (val === "") {
+        localStorage.removeItem(noteID);
+    } else {
+        localStorage.setItem(noteID, val);
+    }
+    renderLyrics();
+    closeNoteModal();
+}
+
+function preparePrint() {
+    // Simplemente usamos el comando nativo. El CSS se encargará del resto.
+    window.print();
+}

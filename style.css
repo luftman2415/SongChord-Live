@@ -850,3 +850,52 @@ body:not(.theme-day) .bpm-badge {
     min-height: 10px;
     text-transform: uppercase;
 }
+
+@media print {
+    /* Escondemos solo lo que estorba */
+    .header-main, .toolbar, .fab-scroll, .back-btn, .setlist-nav-bar, .tool-group, .circle-btn, .metronome-box, #splash-screen, .welcome-card, .section-header, #services-container, .big-btn, .search-section, .song-list, .footer-text {
+        display: none !important;
+    }
+
+    /* Forzamos que la App no tenga límites de altura */
+    body, .app-container, .view.active, #song-view {
+        display: block !important;
+        height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+        background: white !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border: none !important;
+    }
+
+    /* La letra en negro puro y sin fondos */
+    .lyrics-container {
+        color: black !important;
+        padding: 0 !important;
+        font-size: 12pt !important;
+        /* Aumentamos el espacio entre líneas para que quepan los acordes */
+        line-height: 3.5 !important; 
+        overflow: visible !important;
+    }
+
+    .chord-wrapper {
+        display: inline-block !important;
+        position: relative !important;
+    }
+
+    .chord-wrapper::before {
+        color: #000 !important;
+        font-weight: bold !important;
+        position: absolute !important;
+        /* Subimos el acorde un poco más */
+        top: -1.8em !important; 
+        left: 0 !important;
+        visibility: visible !important;
+    }
+
+    /* Quitamos los orbes de fondo */
+    body::before, body::after {
+        display: none !important;
+    }
+}
