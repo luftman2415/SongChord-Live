@@ -54,7 +54,39 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
 .header-main p { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin: 4px 0 0; }
 
 .song-header { display: flex; align-items: center; justify-content: center; position: relative; padding: 20px; }
-.back-btn { position: absolute; left: 15px; background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.back-btn { 
+    position: absolute; 
+    left: 15px; 
+    background: rgba(255, 255, 255, 0.25); 
+    backdrop-filter: blur(10px);
+    border: 1.5px solid white; /* Borde blanco nítido */
+    color: white; 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 1.1rem; 
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 101;
+}
+
+/* Animación al pasar el mouse (PC) */
+.back-btn:hover {
+    transform: scale(1.1) translateX(-2px); /* Pequeño salto lateral */
+    background: white;
+    color: var(--primary);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Efecto de hundimiento al presionar (Móvil/PC) */
+.back-btn:active {
+    transform: scale(0.9) translateY(1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
 
 /* DASHBOARD */
 .content-padding { padding: 20px; flex: 1; overflow-y: auto; }
@@ -898,4 +930,65 @@ body:not(.theme-day) .bpm-badge {
     body::before, body::after {
         display: none !important;
     }
+}
+
+.share-app-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.share-item {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 2px solid white; /* Borde premium */
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra 3D */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.share-item:hover { transform: scale(1.1); box-shadow: 0 6px 12px rgba(0,0,0,0.25); }
+.share-item:active { transform: scale(0.9); }
+
+.share-item.wa { background: #25d366 !important; }
+.share-item.fb { background: #1877f2 !important; }
+.share-item.mail { background: #ea4335 !important; }
+
+/* ANIMACIÓN PARA BOTONES DE NOTAS Y MODALES */
+.modal-actions button {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    border: 2px solid white !important; /* Borde blanco premium */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Sombra de profundidad */
+    cursor: pointer;
+}
+
+/* Efecto al pasar el mouse (PC) o mantener presionado */
+.modal-actions button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Efecto de hundimiento al hacer clic (Móvil/PC) */
+.modal-actions button:active {
+    transform: scale(0.92) translateY(1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Color específico para el botón Cerrar */
+.modal-actions .cancel-btn {
+    background: #e2e8f0 !important;
+    color: #475569 !important;
+}
+
+/* Color específico para el botón Guardar */
+.modal-actions .save-btn {
+    background: #f59e0b !important; /* Naranja vibrante */
+    color: white !important;
 }

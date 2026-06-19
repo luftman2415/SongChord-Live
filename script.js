@@ -1223,13 +1223,18 @@ function closeNoteModal() {
 }
 
 function saveInterpretNote() {
+    if (!currentSong) return;
     const noteID = 'note_global_' + currentSong.ID;
     const val = document.getElementById('interpret-note-text').value.trim();
+
     if (val === "") {
         localStorage.removeItem(noteID);
+        showToast("✨ Notas borradas.", "info");
     } else {
         localStorage.setItem(noteID, val);
+        showToast("✅ Nota guardada.", "success");
     }
+
     renderLyrics();
     closeNoteModal();
 }
@@ -1237,4 +1242,21 @@ function saveInterpretNote() {
 function preparePrint() {
     // Simplemente usamos el comando nativo. El CSS se encargará del resto.
     window.print();
+}
+
+function shareApp(platform) {
+    const url = window.location.href;
+    const text = encodeURIComponent("🎸 *SongChord Live Pro* 🎹\n¡La App definitiva para músicos y directores de alabanza!\n\nLink aquí: ");
+    let shareUrl = "";
+
+    if (platform === 'wa') shareUrl = `https://wa.me/?text=${text}${url}`;
+    if (platform === 'fb') {
+        if (url.startsWith('file')) {
+            return showToast("⚠️ Sube la App a GitHub para compartir", "info");
+        }
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
+    }
+    if (platform === 'mail') shareUrl = `mailto:?subject=Te comparto SongChord Live Pro&body=${text}${url}`;
+    
+    window.open(shareUrl, '_blank');
 }
