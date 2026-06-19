@@ -592,7 +592,13 @@ function openSettingsModal() {
 }
 
 function closeSettingsModal() {
+    // Cerramos el modal de ajustes visualmente
     document.getElementById('settings-modal').style.display = 'none';
+    
+    // Si entramos por historial, volvemos un paso atrás
+    if (history.state && history.state.modal === 'settings-modal') {
+        history.back();
+    }
 }
 
 function setTheme(themeName) {
