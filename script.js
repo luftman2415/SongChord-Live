@@ -331,6 +331,17 @@ async function openSongByID(id) {
     switchView('song-view');
     renderLyrics();
     
+    // Forzar que el scroll de las letras y de la barra de herramientas comience desde el inicio
+    const lyricsCont = document.getElementById('lyrics-container');
+    if (lyricsCont) {
+        lyricsCont.scrollTop = 0;
+        lyricsCont.scrollLeft = 0;
+    }
+    const toolbar = document.querySelector('.toolbar');
+    if (toolbar) {
+        toolbar.scrollLeft = 0;
+    }
+    
     // Encendemos el metrónomo
     startMetronome(currentSong.BPM);
 // ACTIVAR MODO ESCENARIO (PANTALLA SIEMPRE ENCENDIDA)
@@ -952,18 +963,32 @@ function filterFavorites() {
 function changeScrollSpeed(delta) {
     // Delta 1: Más Lento | Delta -1: Más Rápido
     if (delta === 1) {
-        if (scrollSpeed < 150) {
-            scrollSpeed += 10;
+        if (speedLevel > 0.2) {
             speedLevel = parseFloat((speedLevel - 0.2).toFixed(1));
         }
     } else {
-        if (scrollSpeed > 10) {
-            scrollSpeed -= 10;
+        if (speedLevel < 2.0) {
             speedLevel = parseFloat((speedLevel + 0.2).toFixed(1));
         }
     }
 
     if (speedLevel <= 0) speedLevel = 0.2;
+
+    // Mapeo no lineal para que las diferencias de velocidad de scroll sean sumamente notorias
+    const speedMap = {
+        0.2: 220,
+        0.4: 150,
+        0.6: 100,
+        0.8: 70,
+        1.0: 50,
+        1.2: 38,
+        1.4: 28,
+        1.6: 20,
+        1.8: 14,
+        2.0: 8
+    };
+
+    scrollSpeed = speedMap[speedLevel] || 50;
 
     document.getElementById('speed-display').innerText = speedLevel.toFixed(1) + 'x';
 
@@ -1347,5 +1372,35 @@ async function deleteExpiredServiceFromSheets(nombre) {
         console.log("Servicio vencido '" + nombre + "' eliminado automáticamente.");
     } catch (e) {
         console.error("Error al autopurgar servicio:", e);
+    }
+}
+
+// Función para sincronizar de manera forzada y amigable
+async function syncApp(showToastFeedback = false) {
+    const icon = document.getElementById('sync-icon');
+    if (icon) {
+        icon.classList.add('fa-spin');
+    }
+    
+    if (showToastFeedback) {
+        showToast("Sincronizando con Google Sheets...", "info");
+    }
+    
+    try {
+        await initApp();
+        if (showToastFeedback) {
+            showToast("Plataforma Sincronizada", "success");
+        }
+    } catch (e) {
+        console.error("Error al sincronizar:", e);
+        if (showToastFeedback) {
+            showToast("Fallo al conectar con Google Sheets", "error");
+        }
+    } finally {
+        if (icon) {
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+            }, 800);
+        }
     }
 }
