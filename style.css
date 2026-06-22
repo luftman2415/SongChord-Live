@@ -733,7 +733,7 @@ body:not(.theme-day) .bpm-badge {
     flex-wrap: nowrap; /* Evita que se amontonen en dos filas */
     overflow-x: auto; /* Permite deslizar si el celular es muy pequeño */
     gap: 8px;
-} /* Esta llave faltaba y arregla el error del CSS */
+} 
 
 /* --- BOTONES DE ACCIÓN PREMIUM 3D (UNIFICADOS) --- */
 .premium-action-btn, .dash-action-btn {

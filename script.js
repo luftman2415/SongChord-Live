@@ -31,6 +31,10 @@ const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 // 1. ARRANQUE
 window.onload = () => {
+    // Cargar y aplicar tema guardado de inmediato
+    const savedTheme = localStorage.getItem('userTheme') || 'day';
+    applyThemeClass(savedTheme);
+
     initApp();
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
@@ -586,13 +590,24 @@ document.getElementById('search-input').oninput = (e) => {
 // --- FUNCIONES DE AJUSTES VISUALES ---
 
 function openSettingsModal() {
+    // Guardamos el tema actual como copia de seguridad antes de permitir previsualizaciones
+    tempThemeBackup = localStorage.getItem('userTheme') || 'day';
+
+    // Marcamos el botón del tema actual como activo en el modal
+    document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+    const optToActive = document.getElementById('theme-' + tempThemeBackup);
+    if (optToActive) optToActive.classList.add('active');
+
     document.getElementById('settings-modal').style.display = 'flex';
     // Registramos que abrimos ajustes para que "Atrás" no cierre la App
     history.pushState({ modal: 'settings-modal' }, "");
 }
 
 function closeSettingsModal() {
-    // Cerramos el modal de ajustes visualmente
+    // 1. Revertimos al tema previamente guardado
+    revertThemeToSaved();
+
+    // 2. Cerramos el modal de ajustes visualmente
     document.getElementById('settings-modal').style.display = 'none';
     
     // Si entramos por historial, volvemos un paso atrás
@@ -613,13 +628,12 @@ function setTheme(themeName) {
         document.body.classList.add('theme-' + themeName);
     }
     
-    // 4. Marcamos el botón seleccionado como activo
-    document.getElementById('theme-' + themeName).classList.add('active');
+    // 4. Marcamos el botón seleccionado como activo en el modal
+    const optSelected = document.getElementById('theme-' + themeName);
+    if (optSelected) optSelected.classList.add('active');
     
-    // 5. Guardamos la preferencia en el navegador para que no se borre al recargar
-    localStorage.setItem('userTheme', themeName);
-    
-    showToast("Tema " + themeName + " aplicado", "info");
+    // 5. Mostramos toast de previsualización sin guardar en localStorage
+    showToast("Previsualizando " + themeName, "info");
 }
 
 // Cargar el tema guardado automáticamente al iniciar la App
@@ -703,6 +717,7 @@ function prevSongInSet() {
     if (idx > 0) openSongByID(currentServiceSongs[idx - 1]);
 }
 
+// --- NAVEGACIÓN ENTRE CANCIONES ---
 function nextSongInSet() {
     let idx = currentServiceSongs.indexOf(currentSong.ID);
     if (idx < currentServiceSongs.length - 1) openSongByID(currentServiceSongs[idx + 1]);
@@ -1191,6 +1206,9 @@ window.onpopstate = function(event) {
         let el = document.getElementById(id);
         if (el && el.style.display === 'flex') {
             el.style.display = 'none';
+            if (id === 'settings-modal') {
+                revertThemeToSaved();
+            }
             return; // Bloqueamos la salida para que solo cierre el modal
         }
     }
@@ -1265,4 +1283,17 @@ function shareApp(platform) {
     if (platform === 'mail') shareUrl = `mailto:?subject=Te comparto SongChord Live Pro&body=${text}${url}`;
     
     window.open(shareUrl, '_blank');
+}
+
+// --- FUNCIONES COMPLETAS AUXILIARES DE TEMA (APICADO Y REVERSIÓN) ---
+function applyThemeClass(themeName) {
+    document.body.classList.remove('theme-night', 'theme-forest', 'theme-ocean');
+    if (themeName !== 'day') {
+        document.body.classList.add('theme-' + themeName);
+    }
+}
+
+function revertThemeToSaved() {
+    const savedTheme = localStorage.getItem('userTheme') || 'day';
+    applyThemeClass(savedTheme);
 }
