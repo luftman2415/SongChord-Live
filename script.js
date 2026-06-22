@@ -105,7 +105,7 @@ function renderServices() {
         return;
     }
     
-    container.innerHTML = servicesDatabase.map((ser, i) => {
+    const renderedCards = servicesDatabase.map((ser, i) => {
         // Buscador de columnas flexible
         const getVal = (keyword) => {
             const key = Object.keys(ser).find(k => k.toLowerCase().includes(keyword.toLowerCase()));
@@ -113,6 +113,17 @@ function renderServices() {
         };
 
         const fechaRaw = getVal('fecha');
+        if (fechaRaw) {
+            const serviceDate = new Date(fechaRaw);
+            const now = new Date();
+            // Si el servicio tiene más de 24 horas de vencido, se autopurga de la vista y del Sheets
+            if (now.getTime() - serviceDate.getTime() > 24 * 60 * 60 * 1000) {
+                const nombre = getVal('nombre') || "Servicio";
+                deleteExpiredServiceFromSheets(nombre);
+                return ""; // No renderiza nada para este servicio
+            }
+        }
+
         let fecha = "Pendiente";
         if (fechaRaw) {
             const d = new Date(fechaRaw);
@@ -153,7 +164,13 @@ function renderServices() {
                 </div>
             </div>
         `;
-    }).join('');
+    }).filter(html => html !== "").join('');
+
+    if (renderedCards === "") {
+        container.innerHTML = "<p class='loading-small'>No hay servicios programados.</p>";
+    } else {
+        container.innerHTML = renderedCards;
+    }
 }
 
 // 4. FILTRAR CANCIONES POR SERVICIO
@@ -279,6 +296,15 @@ async function openSongByID(id) {
     const activeView = document.querySelector('.view.active');
     if (activeView && activeView.id !== 'song-view') {
         lastListView = activeView.id;
+    }
+
+    // CARGAR TONO / INICIALIZAR TRANSPOSICIÓN SEGÚN EL CONTEXTO
+    if (activeServiceInfo) {
+        const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+        const contextID = 'transp_' + serviceName + '_' + id;
+        currentTransposition = parseInt(localStorage.getItem(contextID)) || 0;
+    } else {
+        currentTransposition = 0; // Tono original en vista general / favoritos
     }
 
     // Reinicios básicos 
@@ -846,6 +872,9 @@ function toggleFavorite(event, id) {
 
 // FUNCIÓN PARA MOSTRAR LA PANTALLA DE FAVORITOS
 function showFavorites() {
+    activeServiceInfo = null; // Limpiamos la info del servicio
+    currentServiceSongs = []; // Evitamos que queden restos de navegación de servicio
+    
     // Limpiamos el buscador de favoritos al entrar
     const inputFav = document.getElementById('search-favorites');
     if(inputFav) inputFav.value = "";
@@ -1296,4 +1325,27 @@ function applyThemeClass(themeName) {
 function revertThemeToSaved() {
     const savedTheme = localStorage.getItem('userTheme') || 'day';
     applyThemeClass(savedTheme);
+}
+
+// Función para eliminar silenciosamente un servicio vencido en las hojas de Google y localmente
+async function deleteExpiredServiceFromSheets(nombre) {
+    if (!nombre) return;
+    
+    // Lo quitamos localmente para evitar que se pinte de nuevo de inmediato
+    servicesDatabase = servicesDatabase.filter(ser => {
+        const key = Object.keys(ser).find(k => k.toLowerCase().includes('nombre'));
+        const n = key ? ser[key] : "";
+        return n.toString().trim() !== nombre.toString().trim();
+    });
+
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ action: 'delete', nombre: nombre })
+        });
+        console.log("Servicio vencido '" + nombre + "' eliminado automáticamente.");
+    } catch (e) {
+        console.error("Error al autopurgar servicio:", e);
+    }
 }
