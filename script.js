@@ -99,6 +99,64 @@ async function initApp() {
     }
 }
 
+// Funciones auxiliares ultra-robustas para mapear columnas de Servicios
+function getServiceVal(ser, keyword) {
+    if (!ser) return "";
+    const keys = Object.keys(ser);
+    let foundKey = keys.find(k => k.toLowerCase().trim() === keyword.toLowerCase().trim());
+    if (foundKey) return ser[foundKey];
+    foundKey = keys.find(k => {
+        const cleanK = k.toLowerCase().trim();
+        const cleanKw = keyword.toLowerCase().trim();
+        return cleanK.includes(cleanKw) || cleanKw.includes(cleanK);
+    });
+    return foundKey ? ser[foundKey] : "";
+}
+
+function getServiceFecha(ser) {
+    return getServiceVal(ser, 'fecha') || getServiceVal(ser, 'date') || getServiceVal(ser, 'hora');
+}
+
+function getServiceNombre(ser) {
+    return getServiceVal(ser, 'nombre') || getServiceVal(ser, 'name') || getServiceVal(ser, 'servicio');
+}
+
+function getServiceLider(ser) {
+    return getServiceVal(ser, 'lider') || getServiceVal(ser, 'líder') || getServiceVal(ser, 'director');
+}
+
+function getServiceIds(ser) {
+    if (!ser) return "";
+    const keys = Object.keys(ser);
+    
+    // Prioridad 1: exacto "ids" o "id"
+    let idKey = keys.find(k => k.toLowerCase().trim() === 'ids');
+    if (idKey) return ser[idKey];
+    
+    // Prioridad 2: contiene "lista de ids"
+    idKey = keys.find(k => {
+        const lower = k.toLowerCase();
+        return lower.includes('lista de ids') || lower.includes('id de las canciones') || lower.includes('ids de canciones') || lower.includes('canciones ids');
+    });
+    if (idKey) return ser[idKey];
+    
+    // Prioridad 3: cualquier llave que contenga "ids" pero que no sea "lider" o "fecha" o "nombre"
+    idKey = keys.find(k => k.toLowerCase().includes('ids') && !k.toLowerCase().includes('lider') && !k.toLowerCase().includes('fecha') && !k.toLowerCase().includes('nombre'));
+    if (idKey) return ser[idKey];
+    
+    // Prioridad 4: buscador flexible por keyword "id"
+    const flexibleKey = keys.find(k => k.toLowerCase().trim().includes('id'));
+    return flexibleKey ? ser[flexibleKey] : "";
+}
+
+function parseServiceIds(rawIds) {
+    if (!rawIds) return [];
+    // Limpiamos los caracteres especiales como comillas simples (truco de excel), puntos, espacios, etc.
+    const cleanStr = rawIds.toString().replace(/'/g, '').replace(/[.\s]/g, ',').trim();
+    // Dividimos por comas, limpiamos espacios de cada ID, y filtramos vacíos
+    return cleanStr.split(',').map(id => id.trim()).filter(id => id !== "");
+}
+
 // 3. RENDERIZAR SERVICIOS (DASHBOARD)
 function renderServices() {
     const container = document.getElementById('services-container');
@@ -108,13 +166,7 @@ function renderServices() {
     }
     
     const renderedCards = servicesDatabase.map((ser, i) => {
-        // Buscador de columnas flexible
-        const getVal = (keyword) => {
-            const key = Object.keys(ser).find(k => k.toLowerCase().includes(keyword.toLowerCase()));
-            return key ? ser[key] : "";
-        };
-
-        const fechaRaw = getVal('fecha');
+        const fechaRaw = getServiceFecha(ser);
         if (fechaRaw) {
             const serviceDate = new Date(fechaRaw);
             const now = new Date();
@@ -136,12 +188,12 @@ function renderServices() {
                 hour12: true 
             }).replace('.', '').toUpperCase();
         }
-        const nombre = getVal('nombre') || "Servicio";
-        const lider = getVal('líder') || getVal('director') || "Por definir";
+        const nombre = getServiceNombre(ser) || "Servicio";
+        const lider = getServiceLider(ser) || "Por definir";
         
         // --- LÓGICA PARA CONTAR CANCIONES (Consistente con la limpieza de Excel) ---
-        const rawIds = getVal('ids') || "";
-        const listaIds = rawIds.toString().replace(/[.\s]/g, ',').split(',').map(id => id.trim()).filter(id => id !== "");
+        const rawIds = getServiceIds(ser);
+        const listaIds = parseServiceIds(rawIds);
         const totalCanciones = listaIds.length;
 
         return `
@@ -179,22 +231,19 @@ function showServiceSongs(index) {
     activeServiceInfo = servicesDatabase[index]; 
 
     const ser = servicesDatabase[index];
-    const keyWithIds = Object.keys(ser).find(k => k.toLowerCase().includes('lista de ids'));
-    const rawIds = ser[keyWithIds] ? ser[keyWithIds].toString() : "";
-    
-    // Limpiamos los IDs del texto del Excel
-    const idsToFilter = rawIds.replace(/[.\s]/g, ',').split(',').map(id => id.trim()).filter(id => id !== "");
+    const rawIds = getServiceIds(ser);
+    const idsToFilter = parseServiceIds(rawIds);
 
-    // Buscamos cada canción para que mantenga el orden exacto (3, 2, 1...)
+    // Buscamos cada canción para que mantenga el orden exacto (3, 2, 1...) y con ID exacto
     currentSongList = idsToFilter.map(id => {
-        return songsDatabase.find(song => song.ID === id);
+        return songsDatabase.find(song => song.ID.toString().trim() === id.toString().trim());
     }).filter(song => song !== undefined); 
 
     // Guardamos la lista de IDs para las flechas en este orden exacto
     currentServiceSongs = currentSongList.map(s => s.ID); 
 
-    const nombreCol = Object.keys(ser).find(k => k.toLowerCase().includes('nombre'));
-    document.getElementById('list-title').innerText = ser[nombreCol] || "Servicio";
+    const nombre = getServiceNombre(ser) || "Servicio";
+    document.getElementById('list-title').innerText = nombre;
     document.getElementById('list-subtitle').innerText = "Orden del Servicio";
     
     renderSongList(currentSongList);
@@ -258,7 +307,7 @@ function renderSongList(songs) {
                 <div style="font-weight:800; color:#6366f1; background:#eef2ff; padding:4px 8px; border-radius:8px; font-size:0.75rem;">
     ${(() => {
         if (activeServiceInfo) {
-            const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+            const serviceName = getServiceNombre(activeServiceInfo);
             const savedT = parseInt(localStorage.getItem('transp_' + serviceName + '_' + song.ID)) || 0;
             return getTransposedKeyName(song.Tono, savedT);
         }
@@ -300,7 +349,7 @@ async function openSongByID(id) {
 
     // CARGAR TONO / INICIALIZAR TRANSPOSICIÓN SEGÚN EL CONTEXTO
     if (activeServiceInfo) {
-        const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+        const serviceName = getServiceNombre(activeServiceInfo);
         const contextID = 'transp_' + serviceName + '_' + id;
         currentTransposition = parseInt(localStorage.getItem(contextID)) || 0;
     } else {
@@ -420,7 +469,7 @@ function changeKey(val) {
 
     // Solo guardamos el tono si estamos dentro de un servicio
     if (currentSong && activeServiceInfo) {
-        const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+        const serviceName = getServiceNombre(activeServiceInfo);
         const contextID = 'transp_' + serviceName + '_' + currentSong.ID;
         localStorage.setItem(contextID, currentTransposition);
     }
@@ -686,9 +735,8 @@ function confirmDeleteService(event, index) {
     
     if (!serviceToDelete) return;
 
-    // Buscamos el nombre para el mensaje
-    const nombreKey = Object.keys(serviceToDelete).find(k => k.toLowerCase().includes('nombre'));
-    const nombre = serviceToDelete[nombreKey] || "este servicio";
+    // Buscamos el nombre para el mensaje de forma ultra-robusta
+    const nombre = getServiceNombre(serviceToDelete) || "este servicio";
     
     document.getElementById('delete-service-info').innerText = `Vas a eliminar "${nombre}". Esta acción no se puede deshacer.`;
     document.getElementById('delete-confirm-modal').style.display = 'flex';
@@ -715,8 +763,7 @@ async function executeDelete() {
     
     // GUARDAMOS LOS DATOS antes de cerrar el modal
     const datosABorrar = serviceToDelete;
-    const nombreKey = Object.keys(datosABorrar).find(k => k.toLowerCase().includes('nombre'));
-    const nombreEnviado = datosABorrar[nombreKey];
+    const nombreEnviado = getServiceNombre(datosABorrar);
 
     // Ahora sí cerramos la ventana
     document.getElementById('delete-confirm-modal').style.display = 'none';
@@ -832,9 +879,8 @@ function swapItems(fromIndex, toIndex) {
 async function saveNewOrderToExcel() {
     if (!activeServiceInfo) return;
 
-    // Buscamos el nombre del servicio actual
-    const nombreKey = Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'));
-    const nombreServicio = activeServiceInfo[nombreKey];
+    // Buscamos el nombre del servicio actual de forma ultra-robusta
+    const nombreServicio = getServiceNombre(activeServiceInfo);
     
     // Unimos los IDs en el nuevo orden
     const nuevosIds = currentServiceSongs.join(',');
@@ -931,7 +977,7 @@ function shareSetlist() {
     mensaje += `*CANCIONES:*\n`;
 
     currentSongList.forEach((song, i) => {
-        const serviceName = activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))];
+        const serviceName = getServiceNombre(activeServiceInfo);
         const savedT = parseInt(localStorage.getItem('transp_' + serviceName + '_' + song.ID)) || 0;
         const tonoParaWA = getTransposedKeyName(song.Tono, savedT);
         mensaje += `${i + 1}. ${song.Titulo} (${tonoParaWA})\n`;
@@ -1003,15 +1049,10 @@ function openEditServiceModal() {
     
     // Cambiamos el título y etiquetas del modal existente para reutilizarlo
     document.querySelector('#service-modal h3').innerText = "Editar Servicio / Añadir Canciones";
-    
-    const getVal = (keyword) => {
-        const key = Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes(keyword.toLowerCase()));
-        return key ? activeServiceInfo[key] : "";
-    };
 
-    // Llenamos los campos con la info actual
-    document.getElementById('new-service-name').value = getVal('nombre');
-    let rawDate = getVal('fecha');
+    // Llenamos los campos con la info actual de forma mega-robusta
+    document.getElementById('new-service-name').value = getServiceNombre(activeServiceInfo);
+    let rawDate = getServiceFecha(activeServiceInfo);
     if (rawDate) {
         let d = new Date(rawDate);
         // Esto ajusta la fecha al formato YYYY-MM-DDTHH:MM que requiere el navegador
@@ -1022,7 +1063,7 @@ function openEditServiceModal() {
         let min = String(d.getMinutes()).padStart(2, '0');
         document.getElementById('new-service-date').value = `${yyyy}-${mm}-${dd}T${hh}:${min}`;
     }
-    document.getElementById('new-service-leader').value = getVal('líder') || getVal('director');
+    document.getElementById('new-service-leader').value = getServiceLider(activeServiceInfo);
     
     // Cargamos las canciones actuales en la lista temporal de selección
     tempSelectedSongs = currentSongList.map(s => ({ id: s.ID, titulo: s.Titulo }));
@@ -1048,7 +1089,7 @@ async function updateServiceData() {
 
     const payload = {
         action: 'update_metadata',
-        old_name: activeServiceInfo[Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('nombre'))].toString(),
+        old_name: getServiceNombre(activeServiceInfo).toString(),
         nombre: name,
         fecha: date,
         ids: idsString,
@@ -1085,13 +1126,12 @@ function openEditServiceModalFromDash(event, index) {
     activeServiceInfo = servicesDatabase[index]; // Seleccionamos el servicio
     
     // Obtenemos los IDs actuales para que no se pierdan
-    const keyWithIds = Object.keys(activeServiceInfo).find(k => k.toLowerCase().includes('lista de ids'));
-    const rawIds = activeServiceInfo[keyWithIds] ? activeServiceInfo[keyWithIds].toString() : "";
-    const idsToFilter = rawIds.replace(/[.\s]/g, ',').split(',').map(id => id.trim()).filter(id => id !== "");
+    const rawIds = getServiceIds(activeServiceInfo);
+    const idsToFilter = parseServiceIds(rawIds);
     
     // Cargamos la lista de canciones actual
     currentSongList = idsToFilter.map(id => {
-        return songsDatabase.find(song => song.ID === id);
+        return songsDatabase.find(song => song.ID.toString().trim() === id.toString().trim());
     }).filter(song => song !== undefined);
 
     openEditServiceModal(); // Abrimos el modal que ya teníamos
@@ -1360,16 +1400,12 @@ async function purgeExpiredServices() {
     const now = new Date();
     
     servicesDatabase.forEach(ser => {
-        const getVal = (keyword) => {
-            const key = Object.keys(ser).find(k => k.toLowerCase().includes(keyword.toLowerCase()));
-            return key ? ser[key] : "";
-        };
-        const fechaRaw = getVal('fecha');
+        const fechaRaw = getServiceFecha(ser);
         if (fechaRaw) {
             const serviceDate = new Date(fechaRaw);
             // Si tiene más de 24 horas de vencido en total
             if (now.getTime() - serviceDate.getTime() > 24 * 60 * 60 * 1000) {
-                const nombre = getVal('nombre');
+                const nombre = getServiceNombre(ser);
                 if (nombre) {
                     expiredList.push(nombre.toString().trim());
                 }
@@ -1381,8 +1417,7 @@ async function purgeExpiredServices() {
 
     // Quitamos los vencidos de la memoria local de inmediato
     servicesDatabase = servicesDatabase.filter(ser => {
-        const key = Object.keys(ser).find(k => k.toLowerCase().includes('nombre'));
-        const n = key ? ser[key] : "";
+        const n = getServiceNombre(ser);
         return !expiredList.includes(n.toString().trim());
     });
     
