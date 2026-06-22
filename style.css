@@ -255,13 +255,43 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
     z-index: 101;
 }
 
-.settings-open-btn:hover {
-    transform: scale(1.1) rotate(45deg);
+/* Botón de sincronizar en el cabezal, simétrico al de engrane */
+.sync-open-btn {
+    position: absolute; 
+    top: 15px; 
+    left: 15px;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(10px);
+    border: 1.5px solid white;
+    color: white; 
+    width: 38px; 
+    height: 38px; 
+    border-radius: 50%;
+    cursor: pointer; 
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 101;
+}
+
+.settings-open-btn:hover, .sync-open-btn:hover {
+    transform: scale(1.1);
     background: white;
     color: var(--primary);
 }
 
-.settings-open-btn:active {
+.sync-open-btn:hover {
+    transform: scale(1.1) rotate(180deg);
+}
+
+.settings-open-btn:hover {
+    transform: scale(1.1) rotate(45deg);
+}
+
+.settings-open-btn:active, .sync-open-btn:active {
     transform: scale(0.9);
 }
 
