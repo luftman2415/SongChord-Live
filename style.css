@@ -1160,3 +1160,64 @@ body.theme-forest .notation-option span,
 body.theme-ocean .notation-option span { 
     color: white !important;
 }
+
+/* --- CONFIGURACIÓN DE VISOR EN DOS BLOQUES (MÚSICOS ONLY) --- */
+.lyrics-container.musician-mode {
+    display: block !important;
+    column-count: 2 !important; /* Forzamos estrictamente 2 columnas en pantalla */
+    column-gap: 35px !important;
+    column-rule: 1px dashed rgba(99, 102, 241, 0.25) !important;
+    height: calc(100dvh - 135px) !important; /* Ajuste perfecto para pantallas estándar */
+    overflow-y: hidden !important;
+    overflow-x: auto !important; /* Paginación horizontal activa */
+    padding-bottom: 25px !important;
+    padding-top: 10px !important;
+}
+
+/* En PC / Tabletas limitamos el ancho de columnas respecto al contenedor general de 500px */
+@media (min-width: 501px) {
+    .lyrics-container.musician-mode {
+        column-width: 210px !important;
+    }
+}
+
+/* Ajuste dinámico de altura cuando el menú de navegación "Siguiente/Anterior" está visible */
+.lyrics-container.musician-mode.with-nav {
+    height: calc(100dvh - 200px) !important; /* Reduce la altura para que no se esconda texto bajo la barra */
+}
+
+/* Evitar que líneas individuales de acordes se corten o dividan entre columnas */
+.lyrics-container.musician-mode .chord-wrapper,
+.lyrics-container.musician-mode .section-tag {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+/* Optimización de espaciado e interlineado para etiquetas de secciones */
+.section-tag {
+    display: block;
+    color: var(--primary);
+    font-family: 'Inter', sans-serif;
+    font-weight: 800;
+    font-size: 0.9rem;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    line-height: 1.2 !important; /* Evita heredar el interlineado de 2.8 de los acordes */
+    break-after: avoid;
+}
+
+/* --- ESTILO DE LA BARRA DE DESPLAZAMIENTO HORIZONTAL (PÁGINAS) --- */
+.lyrics-container.musician-mode::-webkit-scrollbar {
+    height: 6px !important;
+}
+
+.lyrics-container.musician-mode::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.lyrics-container.musician-mode ::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
+    opacity: 0.8;
+}

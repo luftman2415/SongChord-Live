@@ -371,6 +371,8 @@ async function openSongByID(id) {
 
     // Reinicios básicos 
     currentMode = 'musicos';
+    const btnScroll = document.getElementById('btn-scroll');
+    if (btnScroll) btnScroll.style.display = 'none'; // Ocultar scroll inicialmente en músicos
     
     // UI - Cabecera
     document.getElementById('btn-musicos').classList.add('active');
@@ -382,11 +384,14 @@ async function openSongByID(id) {
 
     // Control de Flechas (Solo si entramos por un servicio con más de 1 canción)
     const nav = document.getElementById('setlist-nav');
+    const lyricsContainer = document.getElementById('lyrics-container');
     if (nav) {
         if (currentServiceSongs.length > 1 && currentServiceSongs.includes(id.toString())) {
             nav.style.display = 'flex';
+            if (lyricsContainer) lyricsContainer.classList.add('with-nav');
         } else {
             nav.style.display = 'none';
+            if (lyricsContainer) lyricsContainer.classList.remove('with-nav');
         }
     }
 
@@ -498,6 +503,18 @@ function setMode(mode) {
     currentMode = mode;
     document.getElementById('btn-musicos').classList.toggle('active', mode === 'musicos');
     document.getElementById('btn-voces').classList.toggle('active', mode === 'voces');
+    
+    // Controlar visibilidad del botón de auto-scroll según el modo de lectura
+    const btnScroll = document.getElementById('btn-scroll');
+    if (btnScroll) {
+        if (mode === 'musicos') {
+            stopAutoScroll();
+            btnScroll.style.display = 'none'; // Ocultar en músicos por la doble columna
+        } else {
+            btnScroll.style.display = 'block'; // Mostrar en voces
+        }
+    }
+    
     renderLyrics();
 }
 
@@ -1647,4 +1664,28 @@ function setNotation(style) {
     if (currentSong) {
         renderLyrics();
     }
+}
+
+// --- TRADUCTOR DE SCROLL VERTICAL A DESPLAZAMIENTO HORIZONTAL EN MÚSICOS (PC) ---
+function initWheelScrollTranslation() {
+    const container = document.getElementById('lyrics-container');
+    if (container) {
+        container.addEventListener('wheel', (e) => {
+            // Solo se activa si estamos visualizando acordes en el modo de 2 columnas (músicos)
+            if (container.classList.contains('musician-mode')) {
+                if (e.deltaY !== 0) {
+                    e.preventDefault();
+                    // Multiplicador de velocidad de desplazamiento fluido
+                    container.scrollLeft += e.deltaY * 1.2; 
+                }
+            }
+        }, { passive: false });
+    }
+}
+
+// Inicialización segura para PC / Servidor local
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initWheelScrollTranslation);
+} else {
+    initWheelScrollTranslation();
 }
