@@ -2,6 +2,7 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwhSfeuvmkGJAKJlMUhbXPveDEvRJC7nVV-2opujaRecr52O2Lj5jQIuvNI2EngTwH-/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
+let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
 let activeServiceInfo = null; // Guardará el nombre del servicio abierto
 let serviceToDelete = null; // Guardará el servicio que vamos a borrar
 let songsDatabase = [];
@@ -268,9 +269,15 @@ activeServiceInfo = null; // Limpiamos la info del servicio
 
 function renderSongList(songs) {
     const list = document.getElementById('song-list-container');
-    // Si estamos en la vista de favoritos, usamos su contenedor propio
     const favList = document.getElementById('favorites-list-container');
-    const targetList = document.getElementById('favorites-view').classList.contains('active') ? favList : list;
+    const repList = document.getElementById('repertoire-list-container');
+    
+    let targetList = list;
+    if (document.getElementById('favorites-view').classList.contains('active')) {
+        targetList = favList;
+    } else if (document.getElementById('repertoire-view').classList.contains('active')) {
+        targetList = repList;
+    }
 
     if (songs.length === 0) {
         targetList.innerHTML = "<p class='loading-small' style='text-align:center; padding-top:20px;'>No hay canciones.</p>";
@@ -294,9 +301,13 @@ function renderSongList(songs) {
             card.addEventListener('dragend', handleDragEnd);
         }
 
+        const isInRep = repertoire.includes(song.ID);
         card.innerHTML = `
-            <div class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${song.ID}')">
+            <div class="fav-star ${isFav ? 'active' : ''}" onclick="toggleFavorite(event, '${song.ID}')" title="Favorito">
                 <i class="${isFav ? 'fas' : 'far'} fa-star"></i>
+            </div>
+            <div class="rep-folder ${isInRep ? 'active' : ''}" onclick="toggleRepertoire(event, '${song.ID}')" title="A mi repertorio">
+                <i class="${isInRep ? 'fas' : 'far'} fa-folder"></i>
             </div>
             <div class="song-info-container" onclick="openSongByID('${song.ID}')">
                 <h3 style="margin:0; font-size:1rem;">${song.Titulo}</h3>
@@ -379,6 +390,7 @@ async function openSongByID(id) {
 
     switchView('song-view');
     renderLyrics();
+    updateRepertoireIconInView();
     
     // Forzar que el scroll de las letras y de la barra de herramientas comience desde el inicio
     const lyricsCont = document.getElementById('lyrics-container');
@@ -489,7 +501,7 @@ function switchView(viewId, isBackAction = false) {
     if (target) target.classList.add('active');
 
     // LIMPIEZA DE BUSCADORES
-    const buscadores = ['search-input', 'search-favorites', 'modal-song-search'];
+    const buscadores = ['search-input', 'search-favorites', 'search-repertoire', 'modal-song-search'];
     buscadores.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
@@ -1316,7 +1328,7 @@ window.onpopstate = function(event) {
         stopAutoScroll();
         if (metronomeInterval) { clearInterval(metronomeInterval); metronomeInterval = null; }
         switchView(lastListView, true);
-    } else if (activeView === 'home-view' || activeView === 'favorites-view' || activeView === 'ministry-view') {
+    } else if (activeView === 'home-view' || activeView === 'favorites-view' || activeView === 'repertoire-view' || activeView === 'ministry-view') {
         goToDashboard();
     }
 };
@@ -1467,5 +1479,68 @@ async function syncApp(showToastFeedback = false) {
                 icon.classList.remove('fa-spin');
             }, 800);
         }
+    }
+}
+
+// --- FUNCIONES COMPLETAS DE GESTIÓN PARA MI REPERTORIO ---
+function toggleRepertoire(event, id) {
+    if (event) event.stopPropagation(); // Evita que se abra la canción
+    const index = repertoire.indexOf(id);
+    
+    if (index > -1) {
+        repertoire.splice(index, 1);
+        showToast("Quitada de mi repertorio", "info");
+    } else {
+        repertoire.push(id);
+        showToast("¡Añadida a mi repertorio!", "success");
+    }
+    
+    localStorage.setItem('songChordRepertoire', JSON.stringify(repertoire));
+    
+    // Forzar actualización visual según la vista activa
+    if (document.getElementById('repertoire-view').classList.contains('active')) {
+        showRepertoire();
+    } else {
+        renderSongList(currentSongList);
+    }
+    
+    if (currentSong && currentSong.ID === id) {
+        updateRepertoireIconInView();
+    }
+}
+
+function showRepertoire() {
+    activeServiceInfo = null;
+    currentServiceSongs = [];
+    
+    const inputRep = document.getElementById('search-repertoire');
+    if(inputRep) inputRep.value = "";
+    
+    const repSongs = songsDatabase.filter(s => repertoire.includes(s.ID));
+    switchView('repertoire-view');
+    renderSongList(repSongs);
+}
+
+function filterRepertoire() {
+    const term = document.getElementById('search-repertoire').value.toLowerCase();
+    const filteredReps = songsDatabase.filter(s => 
+        repertoire.includes(s.ID) && 
+        (s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term))
+    );
+    renderSongList(filteredReps);
+}
+
+function toggleRepertoireFromView() {
+    if (!currentSong) return;
+    toggleRepertoire(null, currentSong.ID);
+}
+
+function updateRepertoireIconInView() {
+    if (!currentSong) return;
+    const icon = document.getElementById('view-repertoire-icon');
+    if (icon) {
+        const isInRep = repertoire.includes(currentSong.ID);
+        icon.className = isInRep ? 'fas fa-folder' : 'far fa-folder';
+        icon.style.color = isInRep ? '#10b981' : 'inherit'; // Cambia a verde al estar activa
     }
 }

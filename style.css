@@ -626,38 +626,86 @@ body:not(.theme-day) .bpm-badge {
     align-items: center;
 }
 
-/* --- BOTÓN FAVORITOS PREMIUM (ESTILO 3D) --- */
-.favorites-btn {
-    background: linear-gradient(135deg, #f59e0b, #d97706) !important; /* Dorado Ambarino */
+/* --- CONTENEDOR DE ACCESOS RÁPIDOS SIMÉTRICOS --- */
+.dashboard-shortcuts-container {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 25px;
+}
+
+.shortcut-btn {
+    flex: 1;
+    max-width: 220px;
+    padding: 12px 15px;
+    border: 2px solid white;
     color: white !important;
-    border: 2px solid white !important; /* Borde blanco nítido */
-    padding: 12px 25px !important;
-    font-size: 0.9rem !important;
-    font-weight: 900 !important;
-    border-radius: 30px !important; /* Más redondeado para parecer botón de lujo */
-    width: fit-content !important;
-    display: flex !important;
-    margin: 0 auto 25px auto !important;
-    box-shadow: 0 6px 15px rgba(217, 119, 6, 0.35) !important;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    font-size: 0.9rem;
+    font-weight: 900;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     cursor: pointer;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-/* El botón salta al pasar el dedo o mouse */
-.favorites-btn:hover {
-    transform: scale(1.08) translateY(-3px);
-    box-shadow: 0 10px 20px rgba(217, 119, 6, 0.45) !important;
+.shortcut-btn i {
+    font-size: 1rem;
 }
 
-/* El botón se hunde al presionarlo */
-.favorites-btn:active {
-    transform: scale(0.92) translateY(1px);
-    box-shadow: 0 2px 5px rgba(217, 119, 6, 0.2) !important;
+/* Colores 3D diferenciados */
+.favorites-btn {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 6px 15px rgba(217, 119, 6, 0.35);
 }
 
-/* Espaciado para que la lista de favoritos no choque con el cabezal */
-#favorites-list-container {
+.repertoire-btn {
+    background: linear-gradient(135deg, #10b981, #059669); /* Esmeralda Moderno */
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35);
+}
+
+/* Efectos elásticos */
+.shortcut-btn:hover {
+    transform: scale(1.05) translateY(-3px);
+    color: white !important;
+}
+
+.shortcut-btn:active {
+    transform: scale(0.95) translateY(1px);
+}
+
+/* Ajuste móvil para pantallas pequeñas */
+@media (max-width: 360px) {
+    .dashboard-shortcuts-container {
+        gap: 8px;
+    }
+    .shortcut-btn {
+        font-size: 0.75rem;
+        padding: 10px 8px;
+        gap: 4px;
+    }
+}
+
+/* --- ICONO DE CARPETA DE REPERTORIO EN TARJETAS --- */
+.rep-folder {
+    font-size: 1.25rem;
+    color: #cbd5e1;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.rep-folder.active {
+    color: #10b981; /* Verde esmeralda acorde al botón */
+    filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.5));
+}
+
+/* Espaciado para que la lista de repertorio no choque */
+#repertoire-list-container {
     padding-top: 25px !important;
 }
 

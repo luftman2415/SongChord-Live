@@ -41,11 +41,13 @@
                     <h2 id="welcome-text">Sincronizando...</h2>
                     <p id="welcome-subtext">Cargando mensaje de inspiración...</p>
                 </div>
-            <!-- BOTÓN FAVORITOS -->
-                <!-- CONTENEDOR PARA CENTRAR EL BOTÓN -->
-                <div style="display: flex; justify-content: center; width: 100%;">
-                    <button class="big-btn favorites-btn" onclick="showFavorites()">
-                        <i class="fas fa-star"></i> Mis Canciones Favoritas
+            <!-- CONTENEDOR DE ACCESOS RÁPIDOS SIMÉTRICOS -->
+                <div class="dashboard-shortcuts-container">
+                    <button class="shortcut-btn favorites-btn" onclick="showFavorites()">
+                        <i class="fas fa-star"></i> Mis Favoritos
+                    </button>
+                    <button class="shortcut-btn repertoire-btn" onclick="showRepertoire()">
+                        <i class="fas fa-folder"></i> Mi Repertorio
                     </button>
                 </div>
                 
@@ -246,6 +248,25 @@
             <div class="song-list" id="favorites-list-container"></div>
         </div>
 
+<!-- VISTA 5: MI REPERTORIO -->
+        <div id="repertoire-view" class="view">
+            <header class="header-main song-header">
+                <button class="back-btn" onclick="goToDashboard()"><i class="fas fa-home"></i></button>
+                <div class="header-info">
+                    <h2>Mi Repertorio</h2>
+                    <p>Tu colección personal de canciones</p>
+                </div>
+            </header>
+            <!-- BUSCADOR DE REPERTORIO -->
+            <div class="search-section">
+                <div class="search-card">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-repertoire" placeholder="Buscar en mi repertorio..." oninput="filterRepertoire()">
+                </div>
+            </div>
+            <div class="song-list" id="repertoire-list-container"></div>
+        </div>
+
         <!-- NOTIFICACIONES -->
         <div id="toast-container"></div>
 
@@ -322,6 +343,7 @@
                 <div class="tool-group">
                     <div class="tool-circle-group">
                         <button class="circle-btn" onclick="openInterpretNote()" title="Notas"><i class="fas fa-sticky-note"></i></button>
+                        <button class="circle-btn" id="btn-repertoire" onclick="toggleRepertoireFromView()" title="Mi Repertorio"><i class="far fa-folder" id="view-repertoire-icon"></i></button>
                         <button class="circle-btn" onclick="preparePrint()" title="Imprimir"><i class="fas fa-print"></i></button>
                     </div>
                 </div>
