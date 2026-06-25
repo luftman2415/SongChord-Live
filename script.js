@@ -529,16 +529,24 @@ function closeSong() {
     const speedDisp = document.getElementById('speed-display');
     if (speedDisp) speedDisp.innerText = '1.0x';
 
-    // 3. Regresamos a la vista de la lista
-    // Refrescamos la lista para que los distintivos (badges) de tono se actualicen de inmediato
-    renderSongList(currentSongList);
-// DESACTIVAR MODO ESCENARIO: Permite que la pantalla vuelva a su ahorro de energía normal
+    // DESACTIVAR MODO ESCENARIO: Permite que la pantalla vuelva a su ahorro de energía normal
     if (wakeLock !== null) {
         wakeLock.release().then(() => { wakeLock = null; });
     }
     
-    // Volvemos a la lista de la que veníamos (Favoritos, Repertorio o Roles)
+    // 3. Volvemos primero a la vista de la lista de la que veníamos
     switchView(lastListView, true);
+
+    // 4. Regeneramos y actualizamos los datos de la lista según la pantalla que se activó
+    if (lastListView === 'favorites-view') {
+        const favSongs = songsDatabase.filter(s => favorites.includes(s.ID));
+        renderSongList(favSongs);
+    } else if (lastListView === 'repertoire-view') {
+        const repSongs = songsDatabase.filter(s => repertoire.includes(s.ID));
+        renderSongList(repSongs);
+    } else {
+        renderSongList(currentSongList);
+    }
 }
 // 8. UTILIDADES
 function changeFontSize(val) {
