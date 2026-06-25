@@ -25,6 +25,8 @@ let scrollTimeout; // Esta variable evitará que el scroll "salte" a otras canci
 let scrollSpeed = 50; 
 let speedLevel = 1.0;
 let tempThemeBackup = 'day'; // Memoria para revertir temas con la X
+let tempNotationBackup = 'estandar'; // Memoria para revertir notación con la X
+let currentNotationStyle = localStorage.getItem('chordNotation') || 'estandar'; // Notación de acordes activa en previsualización
 let lastListView = 'home-view'; // Recordará si venías de Favoritos, Repertorio o Roles
 let wakeLock = null; // Protector de pantalla encendida
 
@@ -429,9 +431,13 @@ function renderLyrics() {
 
     if (currentMode === 'musicos') {
         container.classList.add('musician-mode');
+        const notationStyle = currentNotationStyle;
+        const activeKey = getTransposedKeyName(currentSong.Tono, currentTransposition);
+        
         processed = processed.replace(/\[([^\]]+)\]/g, (m, chord) => {
-            const newChord = transposeChord(chord, currentTransposition);
-            return `<span class="chord-wrapper" data-chord="${newChord}">${newChord}</span>`;
+            const transposed = transposeChord(chord, currentTransposition);
+            const formatted = convertChordNotation(transposed, notationStyle, activeKey);
+            return `<span class="chord-wrapper" data-chord="${formatted}">${formatted}</span>`;
         });
     } else {
         container.classList.remove('musician-mode');
@@ -698,11 +704,15 @@ document.getElementById('search-input').oninput = (e) => {
 function openSettingsModal() {
     // Guardamos el tema actual como copia de seguridad antes de permitir previsualizaciones
     tempThemeBackup = localStorage.getItem('userTheme') || 'day';
+    // Guardamos el formato de acordes actual como copia de seguridad (Corrección UX)
+    tempNotationBackup = localStorage.getItem('chordNotation') || 'estandar';
+    currentNotationStyle = tempNotationBackup; // Alineamos la previsualización al valor actual
 
-    // Marcamos el botón del tema actual como activo en el modal
-    document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
-    const optToActive = document.getElementById('theme-' + tempThemeBackup);
-    if (optToActive) optToActive.classList.add('active');
+    // Cargar y marcar el formato de acordes activo en el modal
+    const activeNotation = tempNotationBackup;
+    document.querySelectorAll('.notation-option').forEach(opt => opt.classList.remove('active'));
+    const notationToActive = document.getElementById('notation-' + activeNotation);
+    if (notationToActive) notationToActive.classList.add('active');
 
     document.getElementById('settings-modal').style.display = 'flex';
     // Registramos que abrimos ajustes para que "Atrás" no cierre la App
@@ -712,8 +722,14 @@ function openSettingsModal() {
 function closeSettingsModal() {
     // 1. Revertimos al tema previamente guardado
     revertThemeToSaved();
+    
+    // 2. Revertimos la notación al valor previamente guardado y re-renderizamos (Corrección UX)
+    currentNotationStyle = tempNotationBackup;
+    if (currentSong) {
+        renderLyrics();
+    }
 
-    // 2. Cerramos el modal de ajustes visualmente
+    // 3. Cerramos el modal de ajustes visualmente
     document.getElementById('settings-modal').style.display = 'none';
     
     // Si entramos por historial, volvemos un paso atrás
@@ -1206,11 +1222,15 @@ function applySettings() {
     else if (document.getElementById('theme-forest').classList.contains('active')) selectedTheme = 'forest';
     else if (document.getElementById('theme-ocean').classList.contains('active')) selectedTheme = 'ocean';
 
-    // 2. GUARDAR: Aquí es cuando la App escribe en la memoria del dispositivo
+    // 2. GUARDAR: Confirmamos ambos estados en la memoria del dispositivo
     localStorage.setItem('userTheme', selectedTheme);
     tempThemeBackup = selectedTheme; 
 
-    showToast("Tema aplicado con éxito", "success");
+    // Guardamos permanentemente la notación seleccionada (Corrección UX)
+    localStorage.setItem('chordNotation', currentNotationStyle);
+    tempNotationBackup = currentNotationStyle;
+
+    showToast("Ajustes aplicados con éxito", "success");
     if (history.state && history.state.modal === 'settings-modal') {
         history.back();
     } else {
@@ -1556,5 +1576,75 @@ function updateRepertoireIconInView() {
         const isInRep = repertoire.includes(currentSong.ID);
         icon.className = isInRep ? 'fas fa-folder' : 'far fa-folder';
         icon.style.color = isInRep ? '#10b981' : 'inherit'; // Cambia a verde al estar activa
+    }
+}
+
+// --- TRADUCCIÓN DINÁMICA DE CIFRADOS Y GRÁFICOS (ESTÁNDAR, SOLFEO, NASHVILLE) ---
+function convertChordNotation(chord, style, activeKey) {
+    if (!style || style === 'estandar') return chord;
+
+    const normalize = (c) => c.replace('Db','C#').replace('Eb','D#').replace('Gb','F#').replace('Ab','G#').replace('Bb','A#');
+    
+    // Separa nota base (raíz) y la calidad/extensión del acorde
+    const match = chord.match(/^([A-G][#b]?)(.*)/);
+    if (!match) return chord;
+    
+    const root = match[1];
+    const quality = match[2];
+
+    // Formato 2: Solfeo Latino (Do, Re, Mi...)
+    if (style === 'solfeo') {
+        const angloToLatin = {
+            'C': 'Do', 'C#': 'Do#', 'Db': 'Reb',
+            'D': 'Re', 'D#': 'Re#', 'Eb': 'Mib',
+            'E': 'Mi',
+            'F': 'Fa', 'F#': 'Fa#', 'Gb': 'Solb',
+            'G': 'Sol', 'G#': 'Sol#', 'Ab': 'Lab',
+            'A': 'La', 'A#': 'La#', 'Bb': 'Sib',
+            'B': 'Si'
+        };
+        const latinRoot = angloToLatin[root] || root;
+        return latinRoot + quality;
+    }
+
+    // Formato 3: Números de Nashville (1, 2, 3...)
+    if (style === 'nashville') {
+        if (!activeKey) return chord;
+        const keyMatch = activeKey.match(/^([A-G][#b]?)/);
+        if (!keyMatch) return chord;
+        
+        const keyRoot = normalize(keyMatch[1]);
+        const chordRoot = normalize(root);
+        
+        const indexKey = scale.indexOf(keyRoot);
+        const indexChord = scale.indexOf(chordRoot);
+        
+        if (indexKey === -1 || indexChord === -1) return chord;
+        
+        // Distancia interválica en semitonos
+        const interval = (indexChord - indexKey + 12) % 12;
+        const semitonesToDegree = {
+            0: '1', 1: '1#', 2: '2', 3: '3b', 4: '3', 5: '4', 
+            6: '4#', 7: '5', 8: '5#', 9: '6', 10: '7b', 11: '7'
+        };
+        
+        return (semitonesToDegree[interval] || '1') + quality;
+    }
+
+    return chord;
+}
+
+function setNotation(style) {
+    document.querySelectorAll('.notation-option').forEach(opt => opt.classList.remove('active'));
+    const optSelected = document.getElementById('notation-' + style);
+    if (optSelected) optSelected.classList.add('active');
+    
+    // Cambiamos la variable en vivo (Previsualización) pero no guardamos en localStorage todavía
+    currentNotationStyle = style;
+    showToast("Previsualizando " + (style === 'solfeo' ? 'Solfeo' : style === 'nashville' ? 'Nashville' : 'Estándar'), "info");
+    
+    // Si hay una canción abierta, se actualiza la vista de forma inmediata
+    if (currentSong) {
+        renderLyrics();
     }
 }

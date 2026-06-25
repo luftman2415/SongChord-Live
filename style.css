@@ -495,18 +495,25 @@ body.theme-ocean .lyrics-container {
     gap: 4px;
 }
 
+/* --- INDICADOR LED CON DESTELLO DE ALTO RESPLANDOR (VISION PERIFÉRICA) --- */
 #metronome-visual {
-    width: 8px;
-    height: 8px;
-    background-color: #475569;
+    width: 14px;
+    height: 14px;
+    background-color: rgba(255, 255, 255, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.6);
     border-radius: 50%;
-    transition: 0.1s;
+    margin: 0 auto 8px auto;
+    transition: all 0.08s ease-out;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.2);
+    display: none; /* Se activa mediante JS cuando el BPM es válido */
 }
 
+/* El destello emite ondas concéntricas de alto contraste */
 .metronome-pulse {
     background-color: #ff4757 !important;
-    box-shadow: 0 0 12px #ff4757 !important;
-    transform: scale(1.3);
+    border-color: #ff6b81 !important;
+    transform: scale(1.25);
+    box-shadow: 0 0 15px #ff4757, 0 0 30px rgba(255, 71, 87, 0.6) !important;
 }
 
 .setlist-nav-bar {
@@ -1099,4 +1106,57 @@ body:not(.theme-day) .bpm-badge {
 
 .modal-close-x:active {
     transform: scale(0.9);
+}
+
+/* --- REJILLA DE SELECCIÓN DE NOTACIÓN / GRÁFICOS --- */
+.notation-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.notation-option {
+    background: #f8fafc;
+    padding: 12px 5px;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notation-option.active {
+    border-color: var(--primary);
+    background: #eef2ff;
+}
+
+.notation-option span {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #444;
+}
+
+/* Adaptación para temas oscuros del sistema */
+body.theme-night .notation-option, 
+body.theme-forest .notation-option, 
+body.theme-ocean .notation-option { 
+    background: var(--input-bg) !important; 
+    border: 1px solid var(--border-dark) !important;
+}
+
+body.theme-night .notation-option.active, 
+body.theme-forest .notation-option.active, 
+body.theme-ocean .notation-option.active { 
+    border: 2px solid var(--primary) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.theme-night .notation-option span, 
+body.theme-forest .notation-option span, 
+body.theme-ocean .notation-option span { 
+    color: white !important;
 }
