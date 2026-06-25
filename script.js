@@ -931,13 +931,15 @@ function toggleFavorite(event, id) {
     // Guardar en la memoria del celular
     localStorage.setItem('songChordFavorites', JSON.stringify(favorites));
     
-    // Actualizar la vista actual
-    if (document.getElementById('favorites-view').classList.contains('active')) {
-        showFavorites();
-    } else {
-        renderSongList(currentSongList);
+    // Actualizar la vista actual de forma inteligente según la sección activa
+        if (document.getElementById('favorites-view').classList.contains('active')) {
+            showFavorites();
+        } else if (document.getElementById('repertoire-view').classList.contains('active')) {
+            showRepertoire();
+        } else {
+            renderSongList(currentSongList);
+        }
     }
-}
 
 // FUNCIÓN PARA MOSTRAR LA PANTALLA DE FAVORITOS
 function showFavorites() {
@@ -1497,9 +1499,11 @@ function toggleRepertoire(event, id) {
     
     localStorage.setItem('songChordRepertoire', JSON.stringify(repertoire));
     
-    // Forzar actualización visual según la vista activa
+    // Forzar actualización visual inteligente según la sección activa
     if (document.getElementById('repertoire-view').classList.contains('active')) {
         showRepertoire();
+    } else if (document.getElementById('favorites-view').classList.contains('active')) {
+        showFavorites();
     } else {
         renderSongList(currentSongList);
     }
