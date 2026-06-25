@@ -1097,6 +1097,8 @@ function openEditServiceModal() {
     saveBtn.onclick = updateServiceData;
 
     document.getElementById('service-modal').style.display = 'flex';
+    // Registramos la apertura para que el botón atrás del celular no cierre la App (Corrección)
+    history.pushState({ modal: 'service-modal' }, "");
 }
 
 async function updateServiceData() {
