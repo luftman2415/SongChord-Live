@@ -1304,3 +1304,94 @@ body.theme-ocean .notation-option span {
     transition: all 0.2s ease;
     display: none; /* Controlado por JS */
 }
+
+/* --- COMPRESIÓN DE ALTURAS Y MÁXIMO ESPACIO VISUAL PARA CELULARES (MÓVIL ONLY) --- */
+@media (max-width: 500px) {
+    /* 1. Reducción de altura y padding del Cabezal de la Canción */
+    .song-header {
+        padding: 8px 12px !important;
+    }
+    
+    .song-header h2 {
+        font-size: 1.1rem !important; /* Título de la canción más compacto */
+        margin-bottom: 0 !important;
+    }
+    
+    .song-header p {
+        font-size: 0.7rem !important; /* Nombre del artista más sutil */
+    }
+    
+    .back-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.9rem !important;
+        left: 10px !important;
+    }
+
+    .page-badge {
+        top: 8px !important;
+        right: 10px !important;
+        padding: 4px 8px !important;
+        font-size: 0.65rem !important;
+    }
+
+    /* 2. Reducción drástica de altura de la Barra de Herramientas (Toolbar) */
+    .toolbar {
+        padding: 4px 2px !important;
+        gap: 3px !important;
+    }
+    
+    .pill {
+        padding: 4px 8px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .circle-btn {
+        width: 25px !important;
+        height: 25px !important;
+        font-size: 0.65rem !important;
+    }
+    
+    #current-key, .size-label, #speed-display {
+        font-size: 0.72rem !important;
+        min-width: 20px !important;
+    }
+
+    /* 3. Reducción de la altura de la Barra de Navegación del Setlist inferior */
+    .setlist-nav-bar {
+        height: 48px !important;
+        padding: 0 12px !important;
+    }
+    
+    .setlist-nav-bar button {
+        padding: 5px 10px !important;
+        font-size: 0.72rem !important;
+    }
+    
+    .nav-order-label {
+        font-size: 0.55rem !important;
+    }
+
+    /* Reubicar botones flotantes para que sigan alineados en móvil */
+    .fab-scroll {
+        bottom: 60px !important;
+        width: 42px !important;
+        height: 42px !important;
+        border-radius: 14px !important;
+        font-size: 0.9rem !important;
+    }
+
+    .lyrics-container.with-nav ~ .page-badge {
+        bottom: 115px !important; /* Ajuste proporcional para el numerador flotante de doble columna */
+    }
+
+    /* 4. Optimización de márgenes e interlineado de las Letras de la Canción */
+    .lyrics-container {
+        padding: 10px 15px 65px 15px !important; /* Reducción de márgenes vacíos y de relleno inferior */
+    }
+
+    /* Interlineado de acordes en 1 Columna ligeramente más compacto y limpio */
+    .lyrics-container:not(.double-column) {
+        line-height: 2.3 !important; 
+    }
+}
