@@ -26,7 +26,9 @@ let scrollSpeed = 50;
 let speedLevel = 1.0;
 let tempThemeBackup = 'day'; // Memoria para revertir temas con la X
 let tempNotationBackup = 'estandar'; // Memoria para revertir notación con la X
-let currentNotationStyle = localStorage.getItem('chordNotation') || 'estandar'; // Notación de acordes activa en previsualización
+let tempColumnsBackup = '2-columnas'; // Memoria para revertir columnas con la X
+let currentNotationStyle = localStorage.getItem('chordNotation') || 'estandar'; // Notación de acordes activa
+let currentColumnsLayout = localStorage.getItem('chordColumnsLayout') || '2-columnas'; // Formato de columnas activo
 let lastListView = 'home-view'; // Recordará si venías de Favoritos, Repertorio o Roles
 let wakeLock = null; // Protector de pantalla encendida
 
@@ -371,8 +373,7 @@ async function openSongByID(id) {
 
     // Reinicios básicos 
     currentMode = 'musicos';
-    const btnScroll = document.getElementById('btn-scroll');
-    if (btnScroll) btnScroll.style.display = 'none'; // Ocultar scroll inicialmente en músicos
+    updateScrollButtonVisibility(); // Ajustar visibilidad del botón de scroll según configuración activa
     
     // UI - Cabecera
     document.getElementById('btn-musicos').classList.add('active');
@@ -436,6 +437,12 @@ function renderLyrics() {
 
     if (currentMode === 'musicos') {
         container.classList.add('musician-mode');
+        // Activamos o removemos la doble columna según la preferencia elegida del músico
+        if (currentColumnsLayout === '2-columnas') {
+            container.classList.add('double-column');
+        } else {
+            container.classList.remove('double-column');
+        }
         const notationStyle = currentNotationStyle;
         const activeKey = getTransposedKeyName(currentSong.Tono, currentTransposition);
         
@@ -504,17 +511,7 @@ function setMode(mode) {
     document.getElementById('btn-musicos').classList.toggle('active', mode === 'musicos');
     document.getElementById('btn-voces').classList.toggle('active', mode === 'voces');
     
-    // Controlar visibilidad del botón de auto-scroll según el modo de lectura
-    const btnScroll = document.getElementById('btn-scroll');
-    if (btnScroll) {
-        if (mode === 'musicos') {
-            stopAutoScroll();
-            btnScroll.style.display = 'none'; // Ocultar en músicos por la doble columna
-        } else {
-            btnScroll.style.display = 'block'; // Mostrar en voces
-        }
-    }
-    
+    updateScrollButtonVisibility();
     renderLyrics();
 }
 
@@ -719,17 +716,23 @@ document.getElementById('search-input').oninput = (e) => {
 // --- FUNCIONES DE AJUSTES VISUALES ---
 
 function openSettingsModal() {
-    // Guardamos el tema actual como copia de seguridad antes de permitir previsualizaciones
+    // Guardamos copias de seguridad de la sesión activa
     tempThemeBackup = localStorage.getItem('userTheme') || 'day';
-    // Guardamos el formato de acordes actual como copia de seguridad (Corrección UX)
     tempNotationBackup = localStorage.getItem('chordNotation') || 'estandar';
-    currentNotationStyle = tempNotationBackup; // Alineamos la previsualización al valor actual
+    tempColumnsBackup = localStorage.getItem('chordColumnsLayout') || '2-columnas';
+    
+    currentNotationStyle = tempNotationBackup;
+    currentColumnsLayout = tempColumnsBackup;
 
-    // Cargar y marcar el formato de acordes activo en el modal
-    const activeNotation = tempNotationBackup;
+    // Cargar y marcar el formato de acordes activo
     document.querySelectorAll('.notation-option').forEach(opt => opt.classList.remove('active'));
-    const notationToActive = document.getElementById('notation-' + activeNotation);
+    
+    const notationToActive = document.getElementById('notation-' + currentNotationStyle);
     if (notationToActive) notationToActive.classList.add('active');
+
+    // Cargar y marcar el formato de columnas activo
+    const colToActive = document.getElementById('columns-' + currentColumnsLayout);
+    if (colToActive) colToActive.classList.add('active');
 
     document.getElementById('settings-modal').style.display = 'flex';
     // Registramos que abrimos ajustes para que "Atrás" no cierre la App
@@ -737,19 +740,19 @@ function openSettingsModal() {
 }
 
 function closeSettingsModal() {
-    // 1. Revertimos al tema previamente guardado
+    // Revertimos el tema
     revertThemeToSaved();
     
-    // 2. Revertimos la notación al valor previamente guardado y re-renderizamos (Corrección UX)
+    // Revertimos la notación y el diseño de columnas
     currentNotationStyle = tempNotationBackup;
+    currentColumnsLayout = tempColumnsBackup;
+    
+    updateScrollButtonVisibility();
     if (currentSong) {
         renderLyrics();
     }
 
-    // 3. Cerramos el modal de ajustes visualmente
     document.getElementById('settings-modal').style.display = 'none';
-    
-    // Si entramos por historial, volvemos un paso atrás
     if (history.state && history.state.modal === 'settings-modal') {
         history.back();
     }
@@ -1233,21 +1236,26 @@ function selectKey(steps) {
 }
 
 function applySettings() {
-    // 1. Identificamos qué tema probó el usuario y dejó marcado
     let selectedTheme = 'day';
     if (document.getElementById('theme-night').classList.contains('active')) selectedTheme = 'night';
     else if (document.getElementById('theme-forest').classList.contains('active')) selectedTheme = 'forest';
     else if (document.getElementById('theme-ocean').classList.contains('active')) selectedTheme = 'ocean';
 
-    // 2. GUARDAR: Confirmamos ambos estados en la memoria del dispositivo
+    // Guardar tema
     localStorage.setItem('userTheme', selectedTheme);
     tempThemeBackup = selectedTheme; 
 
-    // Guardamos permanentemente la notación seleccionada (Corrección UX)
+    // Guardar formato de acordes
     localStorage.setItem('chordNotation', currentNotationStyle);
     tempNotationBackup = currentNotationStyle;
 
+    // Guardar diseño de columnas (1 o 2 columnas)
+    localStorage.setItem('chordColumnsLayout', currentColumnsLayout);
+    tempColumnsBackup = currentColumnsLayout;
+
+    updateScrollButtonVisibility();
     showToast("Ajustes aplicados con éxito", "success");
+    
     if (history.state && history.state.modal === 'settings-modal') {
         history.back();
     } else {
@@ -1671,11 +1679,10 @@ function initWheelScrollTranslation() {
     const container = document.getElementById('lyrics-container');
     if (container) {
         container.addEventListener('wheel', (e) => {
-            // Solo se activa si estamos visualizando acordes en el modo de 2 columnas (músicos)
-            if (container.classList.contains('musician-mode')) {
+            // Solo se activa si estamos en modo músicos AND el usuario eligió las 2 columnas
+            if (container.classList.contains('musician-mode') && container.classList.contains('double-column')) {
                 if (e.deltaY !== 0) {
                     e.preventDefault();
-                    // Multiplicador de velocidad de desplazamiento fluido
                     container.scrollLeft += e.deltaY * 1.2; 
                 }
             }
@@ -1683,7 +1690,36 @@ function initWheelScrollTranslation() {
     }
 }
 
-// Inicialización segura para PC / Servidor local
+function updateScrollButtonVisibility() {
+    const btnScroll = document.getElementById('btn-scroll');
+    if (!btnScroll) return;
+
+    if (currentMode === 'musicos') {
+        if (currentColumnsLayout === '2-columnas') {
+            stopAutoScroll();
+            btnScroll.style.display = 'none'; // Ocultar scroll en músicos si usan doble columna
+        } else {
+            btnScroll.style.display = 'block'; // Mostrar en músicos si usan 1 columna
+        }
+    } else {
+        btnScroll.style.display = 'block'; // Mostrar siempre en voces
+    }
+}
+
+function setColumnsStyle(style) {
+    document.querySelectorAll('[id^="columns-"]').forEach(opt => opt.classList.remove('active'));
+    const optSelected = document.getElementById('columns-' + style);
+    if (optSelected) optSelected.classList.add('active');
+    
+    currentColumnsLayout = style;
+    showToast("Previsualizando " + (style === '1-columna' ? '1 Columna (Scroll)' : '2 Columnas (Páginas)'), "info");
+    
+    updateScrollButtonVisibility();
+    if (currentSong) {
+        renderLyrics();
+    }
+}
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initWheelScrollTranslation);
 } else {

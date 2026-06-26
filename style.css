@@ -1161,34 +1161,34 @@ body.theme-ocean .notation-option span {
     color: white !important;
 }
 
-/* --- CONFIGURACIÓN DE VISOR EN DOS BLOQUES (MÚSICOS ONLY) --- */
-.lyrics-container.musician-mode {
+/* --- CONFIGURACIÓN DE VISOR EN DOS BLOQUES (MÚSICOS ONLY - DOUBLE COLUMN ACTIVE) --- */
+.lyrics-container.musician-mode.double-column {
     display: block !important;
-    column-count: 2 !important; /* Forzamos estrictamente 2 columnas en pantalla */
+    column-count: 2 !important; /* Forzamos exactamente 2 columnas en pantalla */
     column-gap: 35px !important;
-    column-rule: 1px dashed rgba(99, 102, 241, 0.25) !important;
-    height: calc(100dvh - 135px) !important; /* Ajuste perfecto para pantallas estándar */
+    column-rule: 2px solid var(--primary) !important; /* Línea sólida, más gruesa y con el color del tema activo para alto contraste */
+    height: calc(100dvh - 135px) !important; /* Altura estricta para forzar paginación horizontal */
     overflow-y: hidden !important;
-    overflow-x: auto !important; /* Paginación horizontal activa */
+    overflow-x: auto !important; /* Habilitamos el desplazamiento horizontal */
     padding-bottom: 25px !important;
     padding-top: 10px !important;
 }
 
 /* En PC / Tabletas limitamos el ancho de columnas respecto al contenedor general de 500px */
 @media (min-width: 501px) {
-    .lyrics-container.musician-mode {
+    .lyrics-container.musician-mode.double-column {
         column-width: 210px !important;
     }
 }
 
 /* Ajuste dinámico de altura cuando el menú de navegación "Siguiente/Anterior" está visible */
-.lyrics-container.musician-mode.with-nav {
-    height: calc(100dvh - 200px) !important; /* Reduce la altura para que no se esconda texto bajo la barra */
+.lyrics-container.musician-mode.double-column.with-nav {
+    height: calc(100dvh - 200px) !important;
 }
 
 /* Evitar que líneas individuales de acordes se corten o dividan entre columnas */
-.lyrics-container.musician-mode .chord-wrapper,
-.lyrics-container.musician-mode .section-tag {
+.lyrics-container.musician-mode.double-column .chord-wrapper,
+.lyrics-container.musician-mode.double-column .section-tag {
     break-inside: avoid;
     page-break-inside: avoid;
 }
@@ -1207,17 +1207,54 @@ body.theme-ocean .notation-option span {
 }
 
 /* --- ESTILO DE LA BARRA DE DESPLAZAMIENTO HORIZONTAL (PÁGINAS) --- */
-.lyrics-container.musician-mode::-webkit-scrollbar {
+.lyrics-container.musician-mode.double-column::-webkit-scrollbar {
     height: 6px !important;
 }
 
-.lyrics-container.musician-mode::-webkit-scrollbar-track {
+.lyrics-container.musician-mode.double-column::-webkit-scrollbar-track {
     background: rgba(0, 0, 0, 0.05);
     border-radius: 10px;
 }
 
-.lyrics-container.musician-mode ::-webkit-scrollbar-thumb {
+.lyrics-container.musician-mode.double-column::-webkit-scrollbar-thumb {
     background: var(--primary);
     border-radius: 10px;
     opacity: 0.8;
+}
+
+/* --- OPTIMIZACIÓN EXCLUSIVA DE ACCESIBILIDAD Y MEDIDAS EN MODAL AJUSTES --- */
+#settings-modal .modal-content {
+    max-width: 450px !important; /* Ensanchamos el modal para evitar scroll interno y alineación perfecta */
+    padding: 25px 30px !important;
+}
+
+/* Estilo y efecto 3D responsivo con elástico en botones del modal */
+.notation-option {
+    background: #f8fafc;
+    padding: 12px 5px;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid white !important; /* Borde sutil 3D */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notation-option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
+}
+
+.notation-option.active {
+    border-color: var(--primary) !important;
+    background: #eef2ff;
+    transform: translateY(-3px) scale(1.02); /* Elástico y elevación 3D */
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.15) !important;
+}
+
+.notation-option:active {
+    transform: scale(0.95);
 }
