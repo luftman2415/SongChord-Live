@@ -1165,8 +1165,8 @@ body.theme-ocean .notation-option span {
 .lyrics-container.musician-mode.double-column {
     display: block !important;
     column-count: 2 !important; /* Forzamos exactamente 2 columnas en pantalla */
-    column-gap: 35px !important;
-    column-rule: 2px solid var(--primary) !important; /* Línea sólida, más gruesa y con el color del tema activo para alto contraste */
+    column-gap: 50px !important; /* Aumentado a 50px para evitar sangrado de acordes largos entre columnas */
+    column-rule: 2px solid var(--primary) !important; /* Línea sólida de alto contraste */
     height: calc(100dvh - 135px) !important; /* Altura estricta para forzar paginación horizontal */
     overflow-y: hidden !important;
     overflow-x: auto !important; /* Habilitamos el desplazamiento horizontal */
@@ -1190,14 +1190,14 @@ body.theme-ocean .notation-option span {
 @media (max-width: 500px) {
     .lyrics-container.musician-mode.double-column {
         font-size: 13.5px !important; /* Tamaño idóneo para evitar desbordes */
-        column-gap: 20px !important; /* Ganamos 15px de espacio de lectura reduciendo el espacio divisorio */
+        column-gap: 25px !important; /* Ajuste óptimo para celulares */
         padding: 15px 12px 25px 12px !important; /* Ajuste fino de bordes laterales */
     }
 }
 
 /* Ajuste dinámico de altura cuando el menú de navegación "Siguiente/Anterior" está visible */
 .lyrics-container.musician-mode.double-column.with-nav {
-    height: calc(100dvh - 200px) !important;
+    height: calc(100dvh - 200px) !important; /* Reduce la altura para que no se esconda texto bajo la barra */
 }
 
 /* Evitar que líneas individuales de acordes se corten o dividan entre columnas */
@@ -1242,12 +1242,6 @@ body.theme-ocean .notation-option span {
     padding: 25px 30px !important;
 }
 
-/* Reposicionamiento simétrico y estético del botón X dentro del marco */
-#settings-modal .modal-close-x {
-    top: 20px !important;
-    right: 20px !important;
-}
-
 /* Estilo y efecto 3D responsivo con elástico en botones del modal */
 .notation-option {
     background: #f8fafc;
@@ -1288,4 +1282,25 @@ body.theme-ocean .notation-option span {
     max-width: 320px; /* Centra y limita el ancho para evitar estiramientos desproporcionados */
     margin-left: auto;
     margin-right: auto;
+}
+
+/* --- BADGE DE NUMERACIÓN EN CABECERA (ESTILO INTEGRADOR DE ALTO CONTRASTE) --- */
+.page-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px; /* Sigue la simetría de la cabecera en la esquina derecha */
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    z-index: 101;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1.5px solid white !important;
+    pointer-events: none;
+    transition: all 0.2s ease;
+    display: none; /* Controlado por JS */
 }

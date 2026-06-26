@@ -464,7 +464,9 @@ function renderLyrics() {
         </div>` + processed;
     }
     container.innerHTML = processed;
+    setTimeout(updatePageIndicator, 150); // Retraso de seguridad para que el navegador calcule el scrollWidth real
 }
+
 
 // 6. FUNCIONES DE TRANSPOSICIÓN
 function transposeChord(chord, steps) {
@@ -1674,20 +1676,56 @@ function setNotation(style) {
     }
 }
 
-// --- TRADUCTOR DE SCROLL VERTICAL A DESPLAZAMIENTO HORIZONTAL EN MÚSICOS (PC) ---
+// --- TRADUCTOR DE SCROLL VERTICAL A PAGINACIÓN HORIZONTAL MAGNÉTICA Y AUTO-SNAP ---
 function initWheelScrollTranslation() {
     const container = document.getElementById('lyrics-container');
-    if (container) {
-        container.addEventListener('wheel', (e) => {
-            // Solo se activa si estamos en modo músicos AND el usuario eligió las 2 columnas
+    if (!container) return;
+
+    // 1. Traductor de rueda del ratón (deslizamiento por página exacta en PC)
+    let isWheeling = false;
+    container.addEventListener('wheel', (e) => {
+        if (container.classList.contains('musician-mode') && container.classList.contains('double-column')) {
+            if (e.deltaY !== 0) {
+                e.preventDefault();
+                if (isWheeling) return; // Evita saltos múltiples seguidos
+                isWheeling = true;
+                
+                const pageDirection = e.deltaY > 0 ? 1 : -1;
+                const pageWidth = container.clientWidth;
+                
+                container.scrollTo({
+                    left: container.scrollLeft + (pageWidth * pageDirection),
+                    behavior: 'smooth'
+                });
+                
+                setTimeout(() => { isWheeling = false; }, 400);
+            }
+        }
+    }, { passive: false });
+
+    // 2. Escucha el scroll para actualizar el badge de páginas y auto-alinear (snap) al detenerse
+    let scrollTimeout;
+    container.addEventListener('scroll', () => {
+        updatePageIndicator();
+        
+        // Auto-alineación magnética suave para evitar quedar a mitad de páginas en móvil y PC
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
             if (container.classList.contains('musician-mode') && container.classList.contains('double-column')) {
-                if (e.deltaY !== 0) {
-                    e.preventDefault();
-                    container.scrollLeft += e.deltaY * 1.2; 
+                const pageWidth = container.clientWidth;
+                const currentPage = Math.round(container.scrollLeft / pageWidth);
+                const targetLeft = currentPage * pageWidth;
+                
+                // Si la pantalla se detiene desalineada, hace un ajuste suave automático
+                if (Math.abs(container.scrollLeft - targetLeft) > 5) {
+                    container.scrollTo({
+                        left: targetLeft,
+                        behavior: 'smooth'
+                    });
                 }
             }
-        }, { passive: false });
-    }
+        }, 150); // Se activa 150ms después de que el usuario deja de desplazar o levantar el dedo
+    });
 }
 
 function updateScrollButtonVisibility() {
@@ -1717,6 +1755,25 @@ function setColumnsStyle(style) {
     updateScrollButtonVisibility();
     if (currentSong) {
         renderLyrics();
+    }
+}
+
+// CÁLCULO DINÁMICO DE NÚMERO DE PÁGINAS DE LA CANCIÓN
+function updatePageIndicator() {
+    const container = document.getElementById('lyrics-container');
+    const indicator = document.getElementById('page-indicator-badge');
+    if (!container || !indicator) return;
+
+    if (container.classList.contains('musician-mode') && container.classList.contains('double-column')) {
+        indicator.style.display = 'block';
+        
+        // Calculamos el número de páginas dividiendo el ancho total del texto entre el ancho de la pantalla
+        const totalPages = Math.max(1, Math.round(container.scrollWidth / container.clientWidth));
+        const currentPage = Math.max(1, Math.round(container.scrollLeft / container.clientWidth) + 1);
+        
+        indicator.innerText = `${currentPage} / ${totalPages}`;
+    } else {
+        indicator.style.display = 'none';
     }
 }
 
