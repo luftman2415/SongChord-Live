@@ -1228,6 +1228,12 @@ body.theme-ocean .notation-option span {
     padding: 25px 30px !important;
 }
 
+/* Reposicionamiento simétrico y estético del botón X dentro del marco */
+#settings-modal .modal-close-x {
+    top: 20px !important;
+    right: 20px !important;
+}
+
 /* Estilo y efecto 3D responsivo con elástico en botones del modal */
 .notation-option {
     background: #f8fafc;
@@ -1257,4 +1263,15 @@ body.theme-ocean .notation-option span {
 
 .notation-option:active {
     transform: scale(0.95);
+}
+
+/* Rejilla centrada exclusiva para las dos opciones de columnas */
+.columns-layout-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Divide perfectamente en 2 partes iguales */
+    gap: 15px;
+    margin-bottom: 15px;
+    max-width: 320px; /* Centra y limita el ancho para evitar estiramientos desproporcionados */
+    margin-left: auto;
+    margin-right: auto;
 }
