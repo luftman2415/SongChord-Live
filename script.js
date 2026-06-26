@@ -1703,29 +1703,8 @@ function initWheelScrollTranslation() {
         }
     }, { passive: false });
 
-    // 2. Escucha el scroll para actualizar el badge de páginas y auto-alinear (snap) al detenerse
-    let scrollTimeout;
-    container.addEventListener('scroll', () => {
-        updatePageIndicator();
-        
-        // Auto-alineación magnética suave para evitar quedar a mitad de páginas en móvil y PC
-        clearTimeout(scrollTimeout);
-        scrollTimeout = setTimeout(() => {
-            if (container.classList.contains('musician-mode') && container.classList.contains('double-column')) {
-                const pageWidth = container.clientWidth;
-                const currentPage = Math.round(container.scrollLeft / pageWidth);
-                const targetLeft = currentPage * pageWidth;
-                
-                // Si la pantalla se detiene desalineada, hace un ajuste suave automático
-                if (Math.abs(container.scrollLeft - targetLeft) > 5) {
-                    container.scrollTo({
-                        left: targetLeft,
-                        behavior: 'smooth'
-                    });
-                }
-            }
-        }, 150); // Se activa 150ms después de que el usuario deja de desplazar o levantar el dedo
-    });
+    // 2. Escuchar el scroll únicamente para actualizar el indicador de páginas en tiempo real (Celular y PC)
+    container.addEventListener('scroll', updatePageIndicator);
 }
 
 function updateScrollButtonVisibility() {
