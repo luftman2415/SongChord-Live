@@ -75,6 +75,15 @@ async function initApp() {
         });
 
         servicesDatabase = data.servicios || [];
+        
+        // Ordenar automáticamente los servicios por fecha de menor a mayor (más cercano primero)
+        servicesDatabase.sort((a, b) => {
+            const dateA = new Date(getServiceFecha(a));
+            const dateB = new Date(getServiceFecha(b));
+            if (isNaN(dateA)) return 1;
+            if (isNaN(dateB)) return -1;
+            return dateA - dateB;
+        });
 
         // 3. CARGA DE PROGRAMACIÓN (HOJA 4) - ¡Aquí está la solución!
         if(data.programacion) {
