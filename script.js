@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby76FziHc1CZS8MqHRe11DN9psqdTbWwIL0WCF4b0J89SzHqXSUM8NN51HopEChSUlX/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOh_CVCS3_U2S0tmxyDwNbcx6ZdiaBah9OjabG3WMv1G2FVVTcZKxB6JJ8EoSzdg/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
@@ -544,6 +544,11 @@ function switchView(viewId, isBackAction = false) {
     });
 
     if (viewId === 'home-view') renderSongList(currentSongList);
+// Control dinámico del botón de agregar canción flotante
+    const btnAddSong = document.getElementById('btn-add-song');
+    if (btnAddSong) {
+        btnAddSong.style.display = (viewId === 'home-view' && currentServiceSongs.length === 0) ? 'block' : 'none';
+    }
 
     // Solo guardamos en el historial si NO es una acción de "atrás" y NO es el inicio
     if (!isBackAction && viewId !== 'dashboard-view') {
@@ -1397,7 +1402,7 @@ ministryData[selectedDaySlot] = { name: name || "Disponible", note: note };
 // CEREBRO DE NAVEGACIÓN ATRÁS (Captura el botón físico del celular)
 window.onpopstate = function(event) {
     // 1. Cerrar cualquier cuadro (Modal) que esté abierto
-    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal', 'note-modal', 'edit-song-modal'];
+    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal', 'note-modal', 'edit-song-modal', 'add-song-modal'];
     for (let id of modales) {
         let el = document.getElementById(id);
         if (el && el.style.display === 'flex') {
@@ -1921,5 +1926,87 @@ async function saveSongEdits() {
     } catch (e) {
         console.error("Error al guardar:", e);
         showToast("Error de conexión al guardar", "error");
+    }
+}
+
+// --- MOTOR DE CREACIÓN DE NUEVAS CANCIONES (ESCRITURA EN HOJA 1) ---
+function openAddSongModal() {
+    // Limpiamos los campos antes de abrir
+    document.getElementById('add-song-title').value = "";
+    document.getElementById('add-song-artist').value = "";
+    document.getElementById('add-song-key').value = "C";
+    document.getElementById('add-song-mode').value = "";
+    document.getElementById('add-song-bpm').value = "";
+    document.getElementById('add-song-lyrics-musician').value = "";
+    document.getElementById('add-song-lyrics-voices').value = "";
+
+    document.getElementById('add-song-modal').style.display = 'flex';
+    history.pushState({ modal: 'add-song-modal' }, "");
+}
+
+function closeAddSongModal() {
+    if (history.state && history.state.modal === 'add-song-modal') {
+        history.back();
+    } else {
+        document.getElementById('add-song-modal').style.display = 'none';
+    }
+}
+
+async function saveNewSong() {
+    const titulo = document.getElementById('add-song-title').value.trim();
+    const artistaVal = document.getElementById('add-song-artist').value.trim();
+    const artista = artistaVal !== "" ? artistaVal : "Desconocido";
+    
+    // Obtener y unificar nota base y modo de tonalidad (ej: "A" + "m" = "Am")
+    const keyRoot = document.getElementById('add-song-key').value;
+    const keyMode = document.getElementById('add-song-mode').value;
+    const tono = keyRoot + keyMode;
+
+    const bpm = document.getElementById('add-song-bpm').value;
+    const letra_musicos = document.getElementById('add-song-lyrics-musician').value;
+    const letra_voces = document.getElementById('add-song-lyrics-voices').value;
+
+    if (!titulo) return showToast("El título de la canción es obligatorio", "error");
+
+    showToast("Registrando en la nube...", "info");
+
+    const nextLocalId = (songsDatabase.length > 0) ? (Math.max(...songsDatabase.map(s => parseInt(s.ID) || 0)) + 1).toString() : "1";
+
+    const newSong = {
+        ID: nextLocalId,
+        Titulo: titulo,
+        Artista: artista,
+        Tono: tono,
+        BPM: bpm ? parseInt(bpm) : 0,
+        Letra_Musicos: letra_musicos,
+        Letra_Voces: letra_voces
+    };
+
+    // Insertar localmente de inmediato para previsualización instantánea
+    songsDatabase.push(newSong);
+    currentSongList = songsDatabase;
+
+    renderSongList(currentSongList);
+    closeAddSongModal();
+
+    // Enviar permanentemente a Google Sheets en segundo plano
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'add_song',
+                titulo: titulo,
+                artista: artista,
+                tono: tono,
+                bpm: bpm ? parseInt(bpm) : 0,
+                letra_musicos: letra_musicos,
+                letra_voces: letra_voces
+            })
+        });
+        showToast("¡Nueva canción guardada con éxito!", "success");
+    } catch (e) {
+        console.error("Error al guardar canción:", e);
+        showToast("Error de conexión al guardar canción", "error");
     }
 }

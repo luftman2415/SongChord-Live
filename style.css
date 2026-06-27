@@ -1522,3 +1522,33 @@ body.theme-ocean .notation-option span {
 .color-dot:active {
     transform: scale(0.95);
 }
+
+/* --- ANIMACIÓN ELÁSTICA 3D PARA EL BOTÓN FLOTANTE (+) --- */
+#btn-add-song {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+#btn-add-song:hover {
+    transform: scale(1.15) translateY(-2px) !important;
+    box-shadow: 0 12px 20px rgba(16, 185, 129, 0.5) !important;
+}
+
+#btn-add-song:active {
+    transform: scale(0.9) translateY(1px) !important;
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* --- REPOSICIONAMIENTO SIMÉTRICO DE LA X EN CREACIÓN (EVITA SCROLLBARS EN PC) --- */
+#add-song-modal .modal-content {
+    padding-top: 25px !important;
+}
+
+#add-song-modal .modal-close-x {
+    top: 20px !important;
+    right: 20px !important;
+}
+
+#add-song-modal h3, 
+#add-song-modal p:first-of-type {
+    padding-right: 35px !important; /* Evita colisiones de texto con la X interna */
+}

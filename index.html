@@ -299,6 +299,63 @@
             <div class="song-list" id="repertoire-list-container"></div>
         </div>
 
+<!-- FORMULARIO MODAL: AGREGAR NUEVA CANCIÓN -->
+    <div id="add-song-modal" class="modal">
+        <div class="modal-content" style="max-height: 90dvh; overflow-y: auto;">
+            <button class="modal-close-x" onclick="closeAddSongModal()"><i class="fas fa-times"></i></button>
+            <h3>Agregar Nueva Canción</h3>
+            <p style="font-size: 0.75rem; color: #666; margin-bottom: 15px;">Registra los datos para agregar la canción al catálogo central.</p>
+            
+            <div class="input-group">
+                <label>Título de la Canción</label>
+                <input type="text" id="add-song-title" placeholder="Ej: Hermoso Eres">
+            </div>
+            <div class="input-group">
+                <label>Artista / Ministerio</label>
+                <input type="text" id="add-song-artist" placeholder="Ej: Marcos Witt">
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom:10px;">
+                <div class="input-group" style="flex: 2; margin-bottom: 0; display: flex; gap: 5px;">
+                    <div style="flex: 1.2;">
+                        <label>Tono</label>
+                        <select id="add-song-key" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; background: white; font-size: 0.9rem;">
+                            <option value="C">C</option><option value="C#">C#</option><option value="D">D</option><option value="D#">D#</option>
+                            <option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="G">G</option>
+                            <option value="G#">G#</option><option value="A">A</option><option value="A#">A#</option><option value="B">B</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Modo</label>
+                        <select id="add-song-mode" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; background: white; font-size: 0.9rem;">
+                            <option value="">Mayor</option>
+                            <option value="m">Menor (m)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label>BPM (Tempo)</label>
+                    <input type="number" id="add-song-bpm" placeholder="Ej: 75" min="0" max="250" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 0.9rem;">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Letra para Músicos (con acordes [C])</label>
+                <textarea id="add-song-lyrics-musician" style="width: 100%; height: 110px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Fira Code', monospace; font-size: 0.8rem; resize: none; outline:none;" placeholder="Ej: {comment: Intro}[C] [G] [Am] [F]"></textarea>
+            </div>
+
+            <div class="input-group">
+                <label>Letra para Voces (Letra limpia)</label>
+                <textarea id="add-song-lyrics-voices" style="width: 100%; height: 110px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; font-size: 0.8rem; resize: none; outline:none;" placeholder="Ej: Ven espíritu ven..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeAddSongModal()">Cancelar</button>
+                <button class="save-btn" style="background: #10b981;" onclick="saveNewSong()">Guardar Canción</button>
+            </div>
+        </div>
+    </div>
+
 <!-- MODAL DE EDICIÓN DE LETRAS/ACORDES DE CANCIÓN -->
     <div id="edit-song-modal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
@@ -339,6 +396,8 @@
             </div>
 
             <div class="song-list" id="song-list-container"></div>
+<!-- BOTÓN FLOTANTE SUTIL PARA AGREGAR NUEVA CANCIÓN -->
+                <button class="fab-scroll" id="btn-add-song" onclick="openAddSongModal()" style="display: none; background: #10b981; box-shadow: 0 8px 15px rgba(16, 185, 129, 0.4); bottom: 20px !important;"><i class="fas fa-plus"></i></button>
         </div>
 
         <!-- VISTA 2: VISUALIZADOR -->
