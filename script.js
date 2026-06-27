@@ -27,11 +27,14 @@ let speedLevel = 1.0;
 let tempThemeBackup = 'day'; // Memoria para revertir temas con la X
 let tempNotationBackup = 'estandar'; // Memoria para revertir notación con la X
 let tempColumnsBackup = '2-columnas'; // Memoria para revertir columnas con la X
+let tempTitleColorBackup = ''; // Memoria para revertir color de título
+let tempTextColorBackup = ''; // Memoria para revertir color de texto
 let currentNotationStyle = localStorage.getItem('chordNotation') || 'estandar'; // Notación de acordes activa
 let currentColumnsLayout = localStorage.getItem('chordColumnsLayout') || '2-columnas'; // Formato de columnas activo
+let currentTitleColor = localStorage.getItem('customTitleColor') || ''; // Color de título activo
+let currentTextColor = localStorage.getItem('customTextColor') || ''; // Color de texto activo
 let lastListView = 'home-view'; // Recordará si venías de Favoritos, Repertorio o Roles
 let wakeLock = null; // Protector de pantalla encendida
-
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 // 1. ARRANQUE
@@ -422,6 +425,7 @@ async function openSongByID(id) {
     
     // Encendemos el metrónomo
     startMetronome(currentSong.BPM);
+applyCustomColors(); // Inyectar colores personalizados guardados
 // ACTIVAR MODO ESCENARIO (PANTALLA SIEMPRE ENCENDIDA)
     if ('wakeLock' in navigator) {
         try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
@@ -474,6 +478,7 @@ function renderLyrics() {
     }
     container.innerHTML = processed;
     setTimeout(updatePageIndicator, 150); // Retraso de seguridad para que el navegador calcule el scrollWidth real
+    applyCustomColors(); // Inyectar colores personalizados en vivo
 }
 
 
@@ -730,10 +735,14 @@ function openSettingsModal() {
     // Guardamos copias de seguridad de la sesión activa
     tempThemeBackup = localStorage.getItem('userTheme') || 'day';
     tempNotationBackup = localStorage.getItem('chordNotation') || 'estandar';
-    tempColumnsBackup = localStorage.getItem('chordColumnsLayout') || '2-columnas';
+    tempColumnsLayoutBackup = localStorage.getItem('chordColumnsLayout') || '2-columnas';
+    tempTitleColorBackup = localStorage.getItem('customTitleColor') || '';
+    tempTextColorBackup = localStorage.getItem('customTextColor') || '';
     
     currentNotationStyle = tempNotationBackup;
-    currentColumnsLayout = tempColumnsBackup;
+    currentColumnsLayout = tempColumnsLayoutBackup;
+    currentTitleColor = tempTitleColorBackup;
+    currentTextColor = tempTextColorBackup;
 
     // Cargar y marcar el formato de acordes activo
     document.querySelectorAll('.notation-option').forEach(opt => opt.classList.remove('active'));
@@ -745,23 +754,29 @@ function openSettingsModal() {
     const colToActive = document.getElementById('columns-' + currentColumnsLayout);
     if (colToActive) colToActive.classList.add('active');
 
+    // Dibujar paletas de colores interactivas
+    renderColorPickers();
+
     document.getElementById('settings-modal').style.display = 'flex';
     // Registramos que abrimos ajustes para que "Atrás" no cierre la App
     history.pushState({ modal: 'settings-modal' }, "");
 }
 
 function closeSettingsModal() {
-    // Revertimos el tema
+    // Revertimos tema
     revertThemeToSaved();
     
-    // Revertimos la notación y el diseño de columnas
+    // Revertimos notación, diseño de columnas y colores
     currentNotationStyle = tempNotationBackup;
-    currentColumnsLayout = tempColumnsBackup;
+    currentColumnsLayout = tempColumnsLayoutBackup;
+    currentTitleColor = tempTitleColorBackup;
+    currentTextColor = tempTextColorBackup;
     
     updateScrollButtonVisibility();
     if (currentSong) {
         renderLyrics();
     }
+    applyCustomColors(); // Restaurar color previo
 
     document.getElementById('settings-modal').style.display = 'none';
     if (history.state && history.state.modal === 'settings-modal') {
@@ -1260,9 +1275,16 @@ function applySettings() {
     localStorage.setItem('chordNotation', currentNotationStyle);
     tempNotationBackup = currentNotationStyle;
 
-    // Guardar diseño de columnas (1 o 2 columnas)
+    // Guardar diseño de columnas
     localStorage.setItem('chordColumnsLayout', currentColumnsLayout);
-    tempColumnsBackup = currentColumnsLayout;
+    tempColumnsLayoutBackup = currentColumnsLayout;
+
+    // Guardar colores confirmados (Corrección UX)
+    localStorage.setItem('customTitleColor', currentTitleColor);
+    tempTitleColorBackup = currentTitleColor;
+    
+    localStorage.setItem('customTextColor', currentTextColor);
+    tempTextColorBackup = currentTextColor;
 
     updateScrollButtonVisibility();
     showToast("Ajustes aplicados con éxito", "success");
@@ -1765,6 +1787,62 @@ function updatePageIndicator() {
     }
 }
 
+// --- MEZCLADOR PERSISTENTE DE COLORES PARA CABECERA Y LETRA (MÚSICOS ONLY) ---
+function applyCustomColors() {
+    const titleEl = document.getElementById('view-title');
+    const lyricsEl = document.getElementById('lyrics-container');
+    
+    // Si la variable está vacía, el navegador hereda automáticamente los estilos responsivos del tema activo
+    if (titleEl) {
+        titleEl.style.color = currentTitleColor ? currentTitleColor : '';
+    }
+    if (lyricsEl) {
+        lyricsEl.style.color = currentTextColor ? currentTextColor : '';
+    }
+}
+
+function renderColorPickers() {
+    // Paleta de 8 tonos vibrantes y estéticos elegidos para escenario
+    const vibrantColors = [
+        '#6366f1', // Azul Eléctrico
+        '#06b6d4', // Cian Cielo
+        '#10b981', // Verde Esmeralda
+        '#f59e0b', // Naranja Oro
+        '#ef4444', // Rojo Coral
+        '#a855f7', // Violeta Orquídea
+        '#1e293b', // Negro Carbón (Ideal Modo Claro)
+        '#ffffff'  // Blanco Puro (Ideal Modo Noche)
+    ];
+
+    const titleRow = document.getElementById('title-color-picker');
+    const textRow = document.getElementById('text-color-picker');
+
+    if (titleRow) {
+        titleRow.innerHTML = vibrantColors.map(color => {
+            const isActive = (currentTitleColor === color);
+            return `<div class="color-dot ${isActive ? 'active' : ''}" style="background-color: ${color};" onclick="setTitleColor('${color}')"></div>`;
+        }).join('') + `<div class="color-dot ${currentTitleColor === '' ? 'active' : ''}" style="background: linear-gradient(135deg, #ddd, #999);" onclick="setTitleColor('')" title="Por defecto"></div>`;
+    }
+
+    if (textRow) {
+        textRow.innerHTML = vibrantColors.map(color => {
+            const isActive = (currentTextColor === color);
+            return `<div class="color-dot ${isActive ? 'active' : ''}" style="background-color: ${color};" onclick="setTextColor('${color}')"></div>`;
+        }).join('') + `<div class="color-dot ${currentTextColor === '' ? 'active' : ''}" style="background: linear-gradient(135deg, #ddd, #999);" onclick="setTextColor('')" title="Por defecto"></div>`;
+    }
+}
+
+function setTitleColor(color) {
+    currentTitleColor = color;
+    renderColorPickers();
+    applyCustomColors();
+}
+
+function setTextColor(color) {
+    currentTextColor = color;
+    renderColorPickers();
+    applyCustomColors();
+}
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initWheelScrollTranslation);
 } else {

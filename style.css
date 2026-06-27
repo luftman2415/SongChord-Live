@@ -184,7 +184,22 @@ body::after { width: 550px; height: 550px; background: var(--blob-2); bottom: -1
 .chord-wrapper::before { content: attr(data-chord); position: absolute; top: -1.3em; left: 0; color: var(--primary); visibility: visible; font-weight: 800; font-family: 'Inter', sans-serif; white-space: nowrap; }
 
 /* MODAL */
-.modal { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; }
+.modal {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    overflow-y: auto; /* Habilita scroll vertical elástico en móviles si la pantalla es muy pequeña */
+    padding: 20px 10px;
+}
 .modal-content { background: white; width: 90%; max-width: 400px; border-radius: 20px; padding: 25px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--primary); margin-bottom: 5px; }
@@ -1237,9 +1252,57 @@ body.theme-ocean .notation-option span {
 }
 
 /* --- OPTIMIZACIÓN EXCLUSIVA DE ACCESIBILIDAD Y MEDIDAS EN MODAL AJUSTES --- */
+.modal {
+    display: none; /* Oculto por defecto. JS lo cambiará a 'flex' al abrirse */
+    position: fixed !important; /* Fijado de forma estricta para bloquear el scroll del fondo */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 2000;
+    overflow-y: auto !important; /* Habilita scroll vertical nativo si la pantalla es baja */
+    justify-content: center;
+    align-items: flex-start; /* Evita recortes de flexbox en cabecera y base */
+    padding: 30px 10px !important; /* Margen de amortiguación arriba y abajo */
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 20px;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    margin-top: auto !important;
+    margin-bottom: auto !important; /* Centrado dinámico inteligente */
+}
+
+/* Unificación y compactación del modal de ajustes (Evita desbordes de tarjetas) */
 #settings-modal .modal-content {
-    max-width: 450px !important; /* Ensanchamos el modal para evitar scroll interno y alineación perfecta */
-    padding: 25px 30px !important;
+    max-width: 450px !important; /* Ancho óptimo para botones alineados */
+    padding: 20px 25px !important; /* Padding interno optimizado */
+}
+
+#settings-modal hr {
+    margin: 10px 0 !important; /* Separadores horizontales mucho más compactos */
+}
+
+#settings-modal p {
+    margin-bottom: 6px !important; /* Textos de párrafo compactos */
+}
+
+#settings-modal .color-picker-row {
+    margin-bottom: 6px !important; /* Mezclador de colores ceñido */
+}
+
+/* Reposicionamiento simétrico y estético del botón X dentro del marco */
+#settings-modal .modal-close-x {
+    top: 20px !important;
+    right: 20px !important;
 }
 
 /* Estilo y efecto 3D responsivo con elástico en botones del modal */
@@ -1273,15 +1336,29 @@ body.theme-ocean .notation-option span {
     transform: scale(0.95);
 }
 
-/* Rejilla centrada exclusiva para las dos opciones de columnas */
+/* Rejilla centrada para las opciones de columnas */
 .columns-layout-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* Divide perfectamente en 2 partes iguales */
+    grid-template-columns: repeat(2, 1fr); /* Divide en 2 partes iguales */
     gap: 15px;
     margin-bottom: 15px;
     max-width: 320px; /* Centra y limita el ancho para evitar estiramientos desproporcionados */
     margin-left: auto;
     margin-right: auto;
+}
+
+/* Barra de desplazamiento vertical estilizada de alta estética exclusiva para el modal */
+.modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.modal::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 10px;
 }
 
 /* --- BADGE DE NUMERACIÓN EN CABECERA (ESTILO INTEGRADOR DE ALTO CONTRASTE) --- */
@@ -1394,4 +1471,39 @@ body.theme-ocean .notation-option span {
     .lyrics-container:not(.double-column) {
         line-height: 2.3 !important; 
     }
+}
+
+/* --- MEZCLADOR DE COLORES PERSONALIZADOS (ESTILO 3D) --- */
+.color-picker-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.color-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Efectos 3D idénticos al resto de la aplicación */
+.color-dot:hover {
+    transform: scale(1.15) translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.22);
+}
+
+.color-dot.active {
+    transform: scale(1.22) translateY(-3px);
+    border: 2px solid var(--primary) !important;
+    box-shadow: 0 0 12px var(--primary) !important;
+}
+
+.color-dot:active {
+    transform: scale(0.95);
 }
