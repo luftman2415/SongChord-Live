@@ -1287,6 +1287,12 @@ body.theme-ocean .notation-option span {
     padding: 20px 25px !important; /* Padding interno optimizado */
 }
 
+/* Espacio de seguridad para que la X no tape el texto en celulares */
+#settings-modal h3, 
+#settings-modal p:first-of-type {
+    padding-right: 35px !important; 
+}
+
 #settings-modal hr {
     margin: 10px 0 !important; /* Separadores horizontales mucho más compactos */
 }
