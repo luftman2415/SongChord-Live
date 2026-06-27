@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwhSfeuvmkGJAKJlMUhbXPveDEvRJC7nVV-2opujaRecr52O2Lj5jQIuvNI2EngTwH-/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby76FziHc1CZS8MqHRe11DN9psqdTbWwIL0WCF4b0J89SzHqXSUM8NN51HopEChSUlX/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
@@ -1397,7 +1397,7 @@ ministryData[selectedDaySlot] = { name: name || "Disponible", note: note };
 // CEREBRO DE NAVEGACIÓN ATRÁS (Captura el botón físico del celular)
 window.onpopstate = function(event) {
     // 1. Cerrar cualquier cuadro (Modal) que esté abierto
-    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal', 'note-modal'];
+    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal', 'note-modal', 'edit-song-modal'];
     for (let id of modales) {
         let el = document.getElementById(id);
         if (el && el.style.display === 'flex') {
@@ -1847,4 +1847,79 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initWheelScrollTranslation);
 } else {
     initWheelScrollTranslation();
+}
+
+// --- MOTOR DE EDICIÓN FLOTANTE DE LETRA Y ACORDES (ESCRITURA EN HOJA 1) ---
+function openEditSongModal() {
+    if (!currentSong) return;
+    
+    const label = document.getElementById('edit-mode-label');
+    const textarea = document.getElementById('edit-song-text');
+    
+    if (!label || !textarea) return;
+
+    if (currentMode === 'musicos') {
+        label.innerText = "Editando: Letra para Músicos (con acordes)";
+        textarea.value = currentSong.Letra_Musicos || "";
+    } else {
+        label.innerText = "Editando: Letra para Voces (sin acordes)";
+        textarea.value = currentSong.Letra_Voces || "";
+    }
+    
+    document.getElementById('edit-song-modal').style.display = 'flex';
+    history.pushState({ modal: 'edit-song-modal' }, "");
+}
+
+function closeEditSongModal() {
+    if (history.state && history.state.modal === 'edit-song-modal') {
+        history.back();
+    } else {
+        document.getElementById('edit-song-modal').style.display = 'none';
+    }
+}
+
+async function saveSongEdits() {
+    if (!currentSong) return;
+    
+    const newValue = document.getElementById('edit-song-text').value;
+    showToast("Sincronizando con Google Sheets...", "info");
+    
+    // 1. Guardar de forma inmediata en la memoria local (vista del músico actual)
+    if (currentMode === 'musicos') {
+        currentSong.Letra_Musicos = newValue;
+    } else {
+        currentSong.Letra_Voces = newValue;
+    }
+    
+    // Sincronizar en la base de datos principal en memoria
+    const dbSong = songsDatabase.find(s => s.ID.toString().trim() === currentSong.ID.toString().trim());
+    if (dbSong) {
+        if (currentMode === 'musicos') dbSong.Letra_Musicos = newValue;
+        else dbSong.Letra_Voces = newValue;
+    }
+
+    // 2. Refrescar el visualizador en vivo al instante
+    renderLyrics();
+    document.getElementById('edit-song-modal').style.display = 'none';
+    if (history.state && history.state.modal === 'edit-song-modal') {
+        history.back();
+    }
+
+    // 3. Enviar al backend (Hoja 1 de Google Sheets) en segundo plano
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'update_song',
+                id: currentSong.ID.toString(),
+                letra_musicos: currentSong.Letra_Musicos,
+                letra_voces: currentSong.Letra_Voces
+            })
+        });
+        showToast("¡Cambios guardados en la nube!", "success");
+    } catch (e) {
+        console.error("Error al guardar:", e);
+        showToast("Error de conexión al guardar", "error");
+    }
 }

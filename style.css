@@ -1411,6 +1411,15 @@ body.theme-ocean .notation-option span {
         left: 10px !important;
     }
 
+/* Centrado estético y simétrico del logotipo de WhatsApp en móviles */
+    #share-wa-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 1.1rem !important;
+        top: 8px !important;
+        right: 10px !important;
+    }
+
     .page-badge {
         top: 8px !important;
         right: 10px !important;
