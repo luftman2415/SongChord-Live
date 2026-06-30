@@ -341,11 +341,51 @@
 
             <div class="input-group">
                 <label>Letra para Músicos (con acordes [C])</label>
+<!-- ASISTENTE DE DIGITACIÓN EN DOS FILAS -->
+            <div class="lyrics-helper-container">
+                <div class="chord-quick-bar">
+                    <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('add-song-lyrics-musician', '{comment: Intro}\n')">Intro</button>
+                    <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('add-song-lyrics-musician', '{comment: Verso}\n')">Verso</button>
+                    <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('add-song-lyrics-musician', '{comment: Coro}\n')">Coro</button>
+                    <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('add-song-lyrics-musician', '{comment: Puente}\n')">Puente</button>
+                </div>
+                <div class="chord-select-row">
+                    <select class="quick-chord-select" onchange="insertChordDropdown(this, 'add-song-lyrics-musician')">
+                        <option value="" disabled selected>🎸 Seleccionar Acorde...</option>
+                        <optgroup label="Mayores">
+                            <option value="[C]">C</option><option value="[C#]">C#</option><option value="[D]">D</option><option value="[D#]">D#</option>
+                            <option value="[E]">E</option><option value="[F]">F</option><option value="[F#]">F#</option><option value="[G]">G</option>
+                            <option value="[G#]">G#</option><option value="[A]">A</option><option value="[A#]">A#</option><option value="[B]">B</option>
+                        </optgroup>
+                        <optgroup label="Menores">
+                            <option value="[Cm]">Cm</option><option value="[C#m]">C#m</option><option value="[Dm]">Dm</option><option value="[D#m]">D#m</option>
+                            <option value="[Em]">Em</option><option value="[Fm]">Fm</option><option value="[F#m]">F#m</option><option value="[Gm]">Gm</option>
+                            <option value="[G#m]">G#m</option><option value="[Am]">Am</option><option value="[A#m]">A#m</option><option value="[Bm]">Bm</option>
+                        </optgroup>
+                        <optgroup label="Especiales / 7mas / Sus">
+                            <option value="[Cmaj7]">Cmaj7</option><option value="[C7]">C7</option><option value="[Csus4]">Csus4</option>
+                            <option value="[Dmaj7]">Dmaj7</option><option value="[D7]">D7</option><option value="[Dsus4]">Dsus4</option>
+                            <option value="[Emaj7]">Emaj7</option><option value="[E7]">E7</option><option value="[Esus4]">Esus4</option>
+                            <option value="[Fmaj7]">Fmaj7</option><option value="[F7]">F7</option><option value="[Fsus4]">Fsus4</option>
+                            <option value="[Gmaj7]">Gmaj7</option><option value="[G7]">G7</option><option value="[Gsus4]">Gsus4</option>
+                            <option value="[Amaj7]">Amaj7</option><option value="[A7]">A7</option><option value="[Asus4]">Asus4</option>
+                            <option value="[Bmaj7]">Bmaj7</option><option value="[B7]">B7</option><option value="[Bsus4]">Bsus4</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
                 <textarea id="add-song-lyrics-musician" style="width: 100%; height: 110px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Fira Code', monospace; font-size: 0.8rem; resize: none; outline:none;" placeholder="Ej: {comment: Intro}[C] [G] [Am] [F]"></textarea>
             </div>
 
             <div class="input-group">
                 <label>Letra para Voces (Letra limpia)</label>
+<!-- BARRA DE ETIQUETAS RÁPIDAS PARA VOCES -->
+            <div class="chord-quick-bar">
+                <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('add-song-lyrics-voices', '{comment: Intro}\n')">Intro</button>
+                <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('add-song-lyrics-voices', '{comment: Verso}\n')">Verso</button>
+                <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('add-song-lyrics-voices', '{comment: Coro}\n')">Coro</button>
+                <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('add-song-lyrics-voices', '{comment: Puente}\n')">Puente</button>
+            </div>
                 <textarea id="add-song-lyrics-voices" style="width: 100%; height: 110px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; font-size: 0.8rem; resize: none; outline:none;" placeholder="Ej: Ven espíritu ven..."></textarea>
             </div>
 
@@ -374,16 +414,94 @@
         </div>
     </div>
 
-<!-- MODAL DE EDICIÓN DE LETRAS/ACORDES DE CANCIÓN -->
+<!-- MODAL DE EDICIÓN COMPLETA DE CANCIÓN (METADATOS Y ACORDES) -->
     <div id="edit-song-modal" class="modal">
-        <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-content" style="max-height: 90dvh; overflow-y: auto; max-width: 450px;">
             <button class="modal-close-x" onclick="closeEditSongModal()"><i class="fas fa-times"></i></button>
-            <h3>Editar Letra y Acordes</h3>
-            <p style="font-size: 0.75rem; color: #666; margin-bottom: 15px;">Modifica los acordes entre corchetes [C] o el texto de la canción.</p>
+            <h3>Editar Canción Completa</h3>
+            <p style="font-size: 0.75rem; color: #666; margin-bottom: 15px;">Modifica los datos generales o las letras de la canción.</p>
             
             <div class="input-group">
-                <label id="edit-mode-label" style="font-weight:800; color:var(--primary); font-size:0.8rem;"></label>
-                <textarea id="edit-song-text" style="width: 100%; height: 260px; padding: 12px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Fira Code', monospace; font-size: 0.82rem; resize: none; line-height: 1.5; outline:none;" placeholder="Escribe aquí..."></textarea>
+                <label>Título de la Canción</label>
+                <input type="text" id="edit-song-title">
+            </div>
+            <div class="input-group">
+                <label>Artista / Ministerio</label>
+                <input type="text" id="edit-song-artist">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <div class="input-group" style="flex: 2; margin-bottom: 0; display: flex; gap: 5px;">
+                    <div style="flex: 1.2;">
+                        <label>Tono</label>
+                        <select id="edit-song-key" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; background: white; font-size: 0.9rem;">
+                            <option value="C">C</option><option value="C#">C#</option><option value="D">D</option><option value="D#">D#</option>
+                            <option value="E">E</option><option value="F">F</option><option value="F#">F#</option><option value="G">G</option>
+                            <option value="G#">G#</option><option value="A">A</option><option value="A#">A#</option><option value="B">B</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label>Modo</label>
+                        <select id="edit-song-mode" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; background: white; font-size: 0.9rem;">
+                            <option value="">Mayor</option>
+                            <option value="m">Menor (m)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group" style="flex: 1; margin-bottom: 0;">
+                    <label>BPM</label>
+                    <input type="number" id="edit-song-bpm" min="0" max="250" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; outline: none; font-size: 0.9rem;">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Letra para Músicos (con acordes [C])</label>
+<!-- ASISTENTE DE DIGITACIÓN EN DOS FILAS -->
+            <div class="lyrics-helper-container">
+                <div class="chord-quick-bar">
+                    <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('edit-song-lyrics-musician', '{comment: Intro}\n')">Intro</button>
+                    <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('edit-song-lyrics-musician', '{comment: Verso}\n')">Verso</button>
+                    <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('edit-song-lyrics-musician', '{comment: Coro}\n')">Coro</button>
+                    <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('edit-song-lyrics-musician', '{comment: Puente}\n')">Puente</button>
+                </div>
+                <div class="chord-select-row">
+                    <select class="quick-chord-select" onchange="insertChordDropdown(this, 'edit-song-lyrics-musician')">
+                        <option value="" disabled selected>🎸 Seleccionar Acorde...</option>
+                        <optgroup label="Mayores">
+                            <option value="[C]">C</option><option value="[C#]">C#</option><option value="[D]">D</option><option value="[D#]">D#</option>
+                            <option value="[E]">E</option><option value="[F]">F</option><option value="[F#]">F#</option><option value="[G]">G</option>
+                            <option value="[G#]">G#</option><option value="[A]">A</option><option value="[A#]">A#</option><option value="[B]">B</option>
+                        </optgroup>
+                        <optgroup label="Menores">
+                            <option value="[Cm]">Cm</option><option value="[C#m]">C#m</option><option value="[Dm]">Dm</option><option value="[D#m]">D#m</option>
+                            <option value="[Em]">Em</option><option value="[Fm]">Fm</option><option value="[F#m]">F#m</option><option value="[Gm]">Gm</option>
+                            <option value="[G#m]">G#m</option><option value="[Am]">Am</option><option value="[A#m]">A#m</option><option value="[Bm]">Bm</option>
+                        </optgroup>
+                        <optgroup label="Especiales / 7mas / Sus">
+                            <option value="[Cmaj7]">Cmaj7</option><option value="[C7]">C7</option><option value="[Csus4]">Csus4</option>
+                            <option value="[Dmaj7]">Dmaj7</option><option value="[D7]">D7</option><option value="[Dsus4]">Dsus4</option>
+                            <option value="[Emaj7]">Emaj7</option><option value="[E7]">E7</option><option value="[Esus4]">Esus4</option>
+                            <option value="[Fmaj7]">Fmaj7</option><option value="[F7]">F7</option><option value="[Fsus4]">Fsus4</option>
+                            <option value="[Gmaj7]">Gmaj7</option><option value="[G7]">G7</option><option value="[Gsus4]">Gsus4</option>
+                            <option value="[Amaj7]">Amaj7</option><option value="[A7]">A7</option><option value="[Asus4]">Asus4</option>
+                            <option value="[Bmaj7]">Bmaj7</option><option value="[B7]">B7</option><option value="[Bsus4]">Bsus4</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+                <textarea id="edit-song-lyrics-musician" style="width: 100%; height: 110px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Fira Code', monospace; font-size: 0.8rem; resize: none; outline:none;" placeholder="Ej: {comment: Intro}[C] [G] [Am] [F]"></textarea>
+            </div>
+
+            <div class="input-group">
+                <label>Letra para Voces (Letra limpia)</label>
+<!-- BARRA DE ETIQUETAS RÁPIDAS PARA VOCES -->
+            <div class="chord-quick-bar">
+                <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('edit-song-lyrics-voices', '{comment: Intro}\n')">Intro</button>
+                <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('edit-song-lyrics-voices', '{comment: Verso}\n')">Verso</button>
+                <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('edit-song-lyrics-voices', '{comment: Coro}\n')">Coro</button>
+                <button type="button" class="quick-tag-btn" onclick="insertTextAtCursor('edit-song-lyrics-voices', '{comment: Puente}\n')">Puente</button>
+            </div>
+                <textarea id="edit-song-lyrics-voices" style="width: 100%; height: 110px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; font-size: 0.8rem; resize: none; outline:none;" placeholder="Ej: Ven espíritu ven..."></textarea>
             </div>
 
             <div class="modal-actions">
@@ -392,6 +510,7 @@
             </div>
         </div>
     </div>
+    
 
         <!-- NOTIFICACIONES -->
         <div id="toast-container"></div>
@@ -474,7 +593,7 @@
                     <div class="tool-circle-group">
                         <button class="circle-btn" onclick="openInterpretNote()" title="Notas"><i class="fas fa-sticky-note"></i></button>
                         <button class="circle-btn" id="btn-repertoire" onclick="toggleRepertoireFromView()" title="Mi Repertorio"><i class="far fa-folder" id="view-repertoire-icon"></i></button>
-                        <button class="circle-btn" onclick="openEditSongModal()" title="Editar Letra/Acordes"><i class="fas fa-edit"></i></button>
+                        <button class="circle-btn" onclick="openEditSongPasswordModal()" title="Editar Letra/Acordes/Metadatos"><i class="fas fa-edit"></i></button>
                         <button class="circle-btn" onclick="toggleTheaterMode()" title="Pantalla Completa (Escenario)"><i class="fas fa-expand"></i></button>
                         <button class="circle-btn" onclick="preparePrint()" title="Imprimir"><i class="fas fa-print"></i></button>
                     </div>
@@ -489,9 +608,8 @@
 
             <div class="lyrics-container" id="lyrics-container"></div>
 			<!-- BOT  N FLOTANTE PARA SALIR DE PANTALLA COMPLETA (ESCENARIO) -->
-            <button class="modal-close-x" id="btn-close-theater" onclick="toggleTheaterMode()" style="display: none; top: 15px 
-			!important; right: 15px !important; background: var(--primary); z-index: 102; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);"><i 
-			class="fas fa-compress"></i></button>
+            <button class="modal-close-x" id="btn-close-theater" onclick="toggleTheaterMode()" style="display: none; bottom: 20px !important; right: 20px !important; top: auto !important; left: auto !important; background: var(--primary); z-index: 102; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);"><i class="fas fa-compress"></i></button>
+
 <!-- INDICADOR DE PÁGINAS DINÁMICO -->
             <!-- NAVEGACIÓN DEL SETLIST -->
             <div id="setlist-nav" class="setlist-nav-bar" style="display:none;">

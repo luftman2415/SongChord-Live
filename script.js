@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzOh_CVCS3_U2S0tmxyDwNbcx6ZdiaBah9OjabG3WMv1G2FVVTcZKxB6JJ8EoSzdg/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzHESLkvNtdmxnEbrlJFHVboFf2DU9Tl6UZX9aYx2qkXxHZk4hclIjKpOrz_I_J5zQ/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
@@ -35,6 +35,7 @@ let currentTitleColor = localStorage.getItem('customTitleColor') || ''; // Color
 let currentTextColor = localStorage.getItem('customTextColor') || ''; // Color de texto activo
 let lastListView = 'home-view'; // Recordará si venías de Favoritos, Repertorio o Roles
 let wakeLock = null; // Protector de pantalla encendida
+let passwordSuccessAction = 'add'; // Determina si la clave exitosa abre la ventana de 'add' (crear) o 'edit' (editar)
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 // 1. ARRANQUE
@@ -395,16 +396,16 @@ async function openSongByID(id) {
     // Mostramos el tono transportado en la cabecera
     document.getElementById('current-key').innerText = getTransposedKeyName(currentSong.Tono, currentTransposition);
 
-    // Control de Flechas (Solo si entramos por un servicio con más de 1 canción)
+    // Control de Flechas y Barra de Navegación del Setlist (Detección dinámica)
     const nav = document.getElementById('setlist-nav');
-    const lyricsContainer = document.getElementById('lyrics-container');
+    const songView = document.getElementById('song-view');
     if (nav) {
         if (currentServiceSongs.length > 1 && currentServiceSongs.includes(id.toString())) {
             nav.style.display = 'flex';
-            if (lyricsContainer) lyricsContainer.classList.add('with-nav');
+            if (songView) songView.classList.add('with-nav');
         } else {
             nav.style.display = 'none';
-            if (lyricsContainer) lyricsContainer.classList.remove('with-nav');
+            if (songView) songView.classList.remove('with-nav');
         }
     }
 
@@ -425,8 +426,8 @@ async function openSongByID(id) {
     
     // Encendemos el metrónomo
     startMetronome(currentSong.BPM);
-applyCustomColors(); // Inyectar colores personalizados guardados
-// ACTIVAR MODO ESCENARIO (PANTALLA SIEMPRE ENCENDIDA)
+    applyCustomColors(); // Inyectar colores personalizados guardados
+    // ACTIVAR MODO ESCENARIO (PANTALLA SIEMPRE ENCENDIDA)
     if ('wakeLock' in navigator) {
         try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
     }
@@ -1877,18 +1878,20 @@ if (document.readyState === 'loading') {
 function openEditSongModal() {
     if (!currentSong) return;
     
-    const label = document.getElementById('edit-mode-label');
-    const textarea = document.getElementById('edit-song-text');
+    // Rellenar campos del formulario de edición con los datos actuales
+    document.getElementById('edit-song-title').value = currentSong.Titulo || "";
+    document.getElementById('edit-song-artist').value = currentSong.Artista || "";
+    document.getElementById('edit-song-bpm').value = currentSong.BPM || "";
     
-    if (!label || !textarea) return;
+    // Separar tono y modo menor/mayor (ej: "Am" -> "A" y "m")
+    const keyRoot = currentSong.Tono.match(/^([A-G][#b]?)/);
+    const keyMode = currentSong.Tono.replace(keyRoot ? keyRoot[1] : "", "");
+    document.getElementById('edit-song-key').value = keyRoot ? keyRoot[1] : "C";
+    document.getElementById('edit-song-mode').value = keyMode || "";
 
-    if (currentMode === 'musicos') {
-        label.innerText = "Editando: Letra para Músicos (con acordes)";
-        textarea.value = currentSong.Letra_Musicos || "";
-    } else {
-        label.innerText = "Editando: Letra para Voces (sin acordes)";
-        textarea.value = currentSong.Letra_Voces || "";
-    }
+    // Cargar de forma independiente ambos campos de texto en el editor
+    document.getElementById('edit-song-lyrics-musician').value = currentSong.Letra_Musicos || "";
+    document.getElementById('edit-song-lyrics-voices').value = currentSong.Letra_Voces || "";
     
     document.getElementById('edit-song-modal').style.display = 'flex';
     history.pushState({ modal: 'edit-song-modal' }, "");
@@ -1905,31 +1908,57 @@ function closeEditSongModal() {
 async function saveSongEdits() {
     if (!currentSong) return;
     
-    const newValue = document.getElementById('edit-song-text').value;
+    const titulo = document.getElementById('edit-song-title').value.trim();
+    const artistaVal = document.getElementById('edit-song-artist').value.trim();
+    const artista = artistaVal !== "" ? artistaVal : "Desconocido";
+    
+    const keyRoot = document.getElementById('edit-song-key').value;
+    const keyMode = document.getElementById('edit-song-mode').value;
+    const tono = keyRoot + keyMode;
+
+    const bpm = document.getElementById('edit-song-bpm').value;
+    
+    // Leer de forma independiente ambos campos de texto
+    const letra_musicos = document.getElementById('edit-song-lyrics-musician').value;
+    const letra_voces = document.getElementById('edit-song-lyrics-voices').value;
+
+    // Validación estricta contra envíos vacíos o incompletos al editar
+    if (!titulo || titulo.length < 2) return showToast("El título de la canción debe tener al menos 2 letras", "error");
+    if (!letra_musicos.trim() && !letra_voces.trim()) return showToast("Debes ingresar al menos una letra (músicos o voces)", "error");
+
     showToast("Sincronizando con Google Sheets...", "info");
     
-    // 1. Guardar de forma inmediata en la memoria local (vista del músico actual)
-    if (currentMode === 'musicos') {
-        currentSong.Letra_Musicos = newValue;
-    } else {
-        currentSong.Letra_Voces = newValue;
-    }
+    // Actualizar memoria local de la canción activa
+    currentSong.Titulo = titulo;
+    currentSong.Artista = artista;
+    currentSong.Tono = tono;
+    currentSong.BPM = bpm ? parseInt(bpm) : 0;
+    currentSong.Letra_Musicos = letra_musicos;
+    currentSong.Letra_Voces = letra_voces;
     
     // Sincronizar en la base de datos principal en memoria
     const dbSong = songsDatabase.find(s => s.ID.toString().trim() === currentSong.ID.toString().trim());
     if (dbSong) {
-        if (currentMode === 'musicos') dbSong.Letra_Musicos = newValue;
-        else dbSong.Letra_Voces = newValue;
+        dbSong.Titulo = titulo;
+        dbSong.Artista = artista;
+        dbSong.Tono = tono;
+        dbSong.BPM = bpm ? parseInt(bpm) : 0;
+        dbSong.Letra_Musicos = letra_musicos;
+        dbSong.Letra_Voces = letra_voces;
     }
 
-    // 2. Refrescar el visualizador en vivo al instante
+    // Refrescar el visualizador en vivo al instante
+    document.getElementById('view-title').innerText = currentSong.Titulo;
+    document.getElementById('view-artist').innerText = currentSong.Artista;
+    document.getElementById('current-key').innerText = getTransposedKeyName(currentSong.Tono, currentTransposition);
+    
     renderLyrics();
     document.getElementById('edit-song-modal').style.display = 'none';
     if (history.state && history.state.modal === 'edit-song-modal') {
         history.back();
     }
 
-    // 3. Enviar al backend (Hoja 1 de Google Sheets) en segundo plano
+    // Enviar al backend (Hoja 1 de Google Sheets) en segundo plano
     try {
         await fetch(WEB_APP_URL, {
             method: 'POST',
@@ -1937,6 +1966,10 @@ async function saveSongEdits() {
             body: JSON.stringify({
                 action: 'update_song',
                 id: currentSong.ID.toString(),
+                titulo: titulo,
+                artista: artista,
+                tono: tono,
+                bpm: bpm ? parseInt(bpm) : 0,
                 letra_musicos: currentSong.Letra_Musicos,
                 letra_voces: currentSong.Letra_Voces
             })
@@ -1985,7 +2018,9 @@ async function saveNewSong() {
     const letra_musicos = document.getElementById('add-song-lyrics-musician').value;
     const letra_voces = document.getElementById('add-song-lyrics-voices').value;
 
-    if (!titulo) return showToast("El título de la canción es obligatorio", "error");
+    // Validación estricta de seguridad contra envíos vacíos o incompletos
+    if (!titulo || titulo.length < 2) return showToast("El título de la canción debe tener al menos 2 letras", "error");
+    if (!letra_musicos.trim() && !letra_voces.trim()) return showToast("Debes ingresar al menos una letra (músicos o voces)", "error");
 
     showToast("Registrando en la nube...", "info");
 
@@ -2054,8 +2089,9 @@ function toggleTheaterMode() {
     setTimeout(updatePageIndicator, 150);
 }
 
-// --- CONTROL DE ACCESO DE SEGURIDAD (CONTRASEÑA "2415") ---
+// --- CONTROL DE ACCESO DE SEGURIDAD PARA CREAR Y EDITAR (CONTRASEÑA "2415") ---
 function openAddSongPasswordModal() {
+    passwordSuccessAction = 'add'; // Determina que al validar se creará una canción
     const passInput = document.getElementById('add-song-pass-input');
     if (passInput) passInput.value = '';
     
@@ -2063,6 +2099,19 @@ function openAddSongPasswordModal() {
     history.pushState({ modal: 'add-song-password-modal' }, "");
     
     // Auto-enfocar el teclado del celular de forma inmediata
+    setTimeout(() => {
+        if (passInput) passInput.focus();
+    }, 150);
+}
+
+function openEditSongPasswordModal() {
+    passwordSuccessAction = 'edit'; // Determina que al validar se editará la canción activa
+    const passInput = document.getElementById('add-song-pass-input');
+    if (passInput) passInput.value = '';
+    
+    document.getElementById('add-song-password-modal').style.display = 'flex';
+    history.pushState({ modal: 'add-song-password-modal' }, "");
+    
     setTimeout(() => {
         if (passInput) passInput.focus();
     }, 150);
@@ -2081,7 +2130,7 @@ function verifyAddSongPassword() {
     if (!passInput) return;
 
     if (passInput.value === '2415') {
-        // Cierre suave del modal de contraseña y apertura del formulario
+        // Cierre suave del modal de contraseña y apertura del formulario correspondiente
         document.getElementById('add-song-password-modal').style.display = 'none';
         if (history.state && history.state.modal === 'add-song-password-modal') {
             history.back();
@@ -2089,7 +2138,11 @@ function verifyAddSongPassword() {
         
         // Retraso estético para la transición entre modales
         setTimeout(() => {
-            openAddSongModal();
+            if (passwordSuccessAction === 'edit') {
+                openEditSongModal();
+            } else {
+                openAddSongModal();
+            }
         }, 150);
         showToast("Acceso Autorizado", "success");
     } else {
@@ -2097,4 +2150,36 @@ function verifyAddSongPassword() {
         passInput.value = '';
         passInput.focus();
     }
+}
+
+// --- MANEJADOR DE SELECCIÓN DE ACORDES DESPLEGABLES ---
+function insertChordDropdown(selectEl, textareaId) {
+    const chord = selectEl.value;
+    if (!chord) return;
+    
+    // Inyectar el acorde con el sistema central
+    insertTextAtCursor(textareaId, chord);
+    
+    // Reiniciar el selector al marcador de posición "Acorde..." por defecto
+    selectEl.selectedIndex = 0;
+}
+
+// --- INYECTOR DINÁMICO DE ACORDES Y ETIQUETAS EN CURSOR ---
+function insertTextAtCursor(textareaId, text) {
+    const textarea = document.getElementById(textareaId);
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const val = textarea.value;
+
+    // Insertar el texto justo en la posición actual del cursor
+    textarea.value = val.substring(0, start) + text + val.substring(end);
+    
+    // Reposicionar el cursor inmediatamente después del texto insertado
+    const newCursorPos = start + text.length;
+    textarea.selectionStart = textarea.selectionEnd = newCursorPos;
+    
+    // Devolver el enfoque a la caja de texto para seguir escribiendo sin interrupciones
+    textarea.focus();
 }

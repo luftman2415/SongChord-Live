@@ -1093,11 +1093,11 @@ body:not(.theme-day) .bpm-badge {
     color: white !important;
 }
 
-/* BOTÓN X DE AJUSTES */
+/* BOTÓN X DE AJUSTES (GLOBAL INTERNO DE ALTO CONTRASTE) */
 .modal-close-x {
     position: absolute;
-    top: -12px;
-    right: -12px;
+    top: 20px !important;
+    right: 20px !important; /* Posicionado dentro de los límites en todas las ventanas */
     width: 38px;
     height: 38px;
     border-radius: 50%;
@@ -1112,6 +1112,12 @@ body:not(.theme-day) .bpm-badge {
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     z-index: 2001;
+}
+
+/* Espacio de seguridad global para que los títulos no colisionen con la X interna */
+.modal-content h3, 
+.modal-content p:first-of-type {
+    padding-right: 35px !important; 
 }
 
 .modal-close-x:hover {
@@ -1608,4 +1614,125 @@ body.theme-ocean .notation-option span {
 #add-song-modal h3, 
 #add-song-modal p:first-of-type {
     padding-right: 35px !important; /* Evita colisiones de texto con la X interna */
+}
+
+/* Eleva dinámicamente el botón de comprimir sobre la barra del setlist para evitar solapamientos con las letras */
+#song-view.with-nav #btn-close-theater {
+    bottom: 85px !important;
+}
+
+/* Espacio de seguridad y scroll vertical limpio para el modal de edición de acordes */
+#edit-song-modal .modal-content {
+    max-height: 90dvh !important;
+    overflow-y: auto !important;
+}
+
+/* --- BARRA DE INSERCIÓN RÁPIDA DE ACORDES Y ETIQUETAS (CHORDPRO HELPER DE DOS FILAS) --- */
+.lyrics-helper-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.chord-quick-bar {
+    display: flex;
+    gap: 6px;
+    justify-content: center; /* Centra los botones en pantallas grandes */
+    overflow-x: auto; /* Deslizamiento horizontal en celulares si es muy estrecho */
+    padding: 4px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    scrollbar-width: none;
+}
+
+.chord-quick-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.quick-tag-btn {
+    background: var(--primary) !important;
+    color: white !important;
+    font-weight: 800;
+    font-size: 0.72rem;
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1.5px solid white !important; /* Borde sutil 3D */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    flex-shrink: 0 !important;
+}
+
+.quick-tag-btn:hover {
+    transform: scale(1.08) translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.quick-tag-btn:active {
+    transform: scale(0.94);
+}
+
+/* FILA 2: CONTENEDOR Y SELECTOR DE ACORDES CENTRADO */
+.chord-select-row {
+    display: flex;
+    justify-content: center; /* Centrado perfecto en pantalla */
+    width: 100%;
+}
+
+.quick-chord-select {
+    max-width: 250px !important; /* Ancho máximo óptimo */
+    width: 100% !important;
+    padding: 8px 12px !important; /* Más espacioso e imponente */
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0 !important; /* Borde sutil 3D */
+    outline: none;
+    background: white;
+    color: var(--primary);
+    font-weight: 800;
+    font-size: 0.8rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.quick-chord-select:hover {
+    transform: scale(1.03) translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary) !important;
+}
+
+.quick-chord-select:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Adaptación para temas oscuros en el modal de acordes */
+body.theme-night .quick-chord-select, 
+body.theme-forest .quick-chord-select, 
+body.theme-ocean .quick-chord-select { 
+    background: var(--input-bg) !important; 
+    border-color: var(--border-dark) !important;
+    color: white !important;
+}
+
+.quick-chord-select:hover {
+    transform: scale(1.02) translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary) !important;
+}
+
+.quick-chord-select:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 8px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* Optimización de visualización en selectores oscuros */
+body.theme-night .quick-chord-select, 
+body.theme-forest .quick-chord-select, 
+body.theme-ocean .quick-chord-select { 
+    background: var(--input-bg) !important; 
+    border-color: var(--border-dark) !important;
+    color: white !important;
 }
