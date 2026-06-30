@@ -356,6 +356,24 @@
         </div>
     </div>
 
+<!-- MODAL DE CONTRASEÑA PARA CONTROL DE ACCESO (AÑADIR CANCIÓN) -->
+    <div id="add-song-password-modal" class="modal">
+        <div class="modal-content" style="max-width: 300px; text-align: center;">
+            <div style="font-size: 3rem; color: var(--primary); margin-bottom: 10px;"><i class="fas fa-lock"></i></div>
+            <h3 style="margin-bottom: 10px;">Acceso Restringido</h3>
+            <p style="font-size: 0.8rem; color: #666; margin-bottom: 15px;">Ingresa la contraseña de 4 dígitos para agregar una nueva canción al repertorio.</p>
+            
+            <div class="input-group" style="text-align: left;">
+                <input type="password" id="add-song-pass-input" maxlength="4" placeholder="••••" style="text-align: center; font-size: 1.5rem; letter-spacing: 8px; padding: 10px; font-weight: bold; border-radius: 10px; border: 1px solid #ddd; width: 100%; outline: none; box-sizing: border-box;">
+            </div>
+
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeAddSongPasswordModal()">Cancelar</button>
+                <button class="save-btn" style="background: var(--primary);" onclick="verifyAddSongPassword()">Acceder</button>
+            </div>
+        </div>
+    </div>
+
 <!-- MODAL DE EDICIÓN DE LETRAS/ACORDES DE CANCIÓN -->
     <div id="edit-song-modal" class="modal">
         <div class="modal-content" style="max-width: 450px;">
@@ -397,7 +415,7 @@
 
             <div class="song-list" id="song-list-container"></div>
 <!-- BOTÓN FLOTANTE SUTIL PARA AGREGAR NUEVA CANCIÓN -->
-                <button class="fab-scroll" id="btn-add-song" onclick="openAddSongModal()" style="display: none; background: #10b981; box-shadow: 0 8px 15px rgba(16, 185, 129, 0.4); bottom: 20px !important;"><i class="fas fa-plus"></i></button>
+                <button class="fab-scroll" id="btn-add-song" onclick="openAddSongPasswordModal()" style="display: none; background: #10b981; box-shadow: 0 8px 15px rgba(16, 185, 129, 0.4); bottom: 20px !important;"><i class="fas fa-plus"></i></button>
         </div>
 
         <!-- VISTA 2: VISUALIZADOR -->
@@ -470,7 +488,7 @@
             </div>
 
             <div class="lyrics-container" id="lyrics-container"></div>
-			<!-- BOT��N FLOTANTE PARA SALIR DE PANTALLA COMPLETA (ESCENARIO) -->
+			<!-- BOT  N FLOTANTE PARA SALIR DE PANTALLA COMPLETA (ESCENARIO) -->
             <button class="modal-close-x" id="btn-close-theater" onclick="toggleTheaterMode()" style="display: none; top: 15px 
 			!important; right: 15px !important; background: var(--primary); z-index: 102; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);"><i 
 			class="fas fa-compress"></i></button>

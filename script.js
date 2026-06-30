@@ -1406,7 +1406,7 @@ ministryData[selectedDaySlot] = { name: name || "Disponible", note: note };
 // CEREBRO DE NAVEGACIÓN ATRÁS (Captura el botón físico del celular)
 window.onpopstate = function(event) {
     // 1. Cerrar cualquier cuadro (Modal) que esté abierto
-    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal', 'note-modal', 'edit-song-modal', 'add-song-modal'];
+    const modales = ['service-modal', 'delete-confirm-modal', 'settings-modal', 'key-modal', 'assign-leader-modal', 'note-modal', 'edit-song-modal', 'add-song-modal', 'add-song-password-modal'];
     for (let id of modales) {
         let el = document.getElementById(id);
         if (el && el.style.display === 'flex') {
@@ -1852,10 +1852,25 @@ function setTextColor(color) {
     renderColorPickers();
     applyCustomColors();
 }
+function initPasswordInputListener() {
+    const passInput = document.getElementById('add-song-pass-input');
+    if (passInput) {
+        passInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                verifyAddSongPassword();
+            }
+        });
+    }
+}
+
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initWheelScrollTranslation);
+    document.addEventListener('DOMContentLoaded', () => {
+        initWheelScrollTranslation();
+        initPasswordInputListener();
+    });
 } else {
     initWheelScrollTranslation();
+    initPasswordInputListener();
 }
 
 // --- MOTOR DE EDICIÓN FLOTANTE DE LETRA Y ACORDES (ESCRITURA EN HOJA 1) ---
@@ -2037,4 +2052,49 @@ function toggleTheaterMode() {
 
     // Forzar recalculo de indicador de página para columnas
     setTimeout(updatePageIndicator, 150);
+}
+
+// --- CONTROL DE ACCESO DE SEGURIDAD (CONTRASEÑA "2415") ---
+function openAddSongPasswordModal() {
+    const passInput = document.getElementById('add-song-pass-input');
+    if (passInput) passInput.value = '';
+    
+    document.getElementById('add-song-password-modal').style.display = 'flex';
+    history.pushState({ modal: 'add-song-password-modal' }, "");
+    
+    // Auto-enfocar el teclado del celular de forma inmediata
+    setTimeout(() => {
+        if (passInput) passInput.focus();
+    }, 150);
+}
+
+function closeAddSongPasswordModal() {
+    if (history.state && history.state.modal === 'add-song-password-modal') {
+        history.back();
+    } else {
+        document.getElementById('add-song-password-modal').style.display = 'none';
+    }
+}
+
+function verifyAddSongPassword() {
+    const passInput = document.getElementById('add-song-pass-input');
+    if (!passInput) return;
+
+    if (passInput.value === '2415') {
+        // Cierre suave del modal de contraseña y apertura del formulario
+        document.getElementById('add-song-password-modal').style.display = 'none';
+        if (history.state && history.state.modal === 'add-song-password-modal') {
+            history.back();
+        }
+        
+        // Retraso estético para la transición entre modales
+        setTimeout(() => {
+            openAddSongModal();
+        }, 150);
+        showToast("Acceso Autorizado", "success");
+    } else {
+        showToast("Contraseña Incorrecta", "error");
+        passInput.value = '';
+        passInput.focus();
+    }
 }
