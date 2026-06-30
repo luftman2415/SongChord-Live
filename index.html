@@ -457,6 +457,7 @@
                         <button class="circle-btn" onclick="openInterpretNote()" title="Notas"><i class="fas fa-sticky-note"></i></button>
                         <button class="circle-btn" id="btn-repertoire" onclick="toggleRepertoireFromView()" title="Mi Repertorio"><i class="far fa-folder" id="view-repertoire-icon"></i></button>
                         <button class="circle-btn" onclick="openEditSongModal()" title="Editar Letra/Acordes"><i class="fas fa-edit"></i></button>
+                        <button class="circle-btn" onclick="toggleTheaterMode()" title="Pantalla Completa (Escenario)"><i class="fas fa-expand"></i></button>
                         <button class="circle-btn" onclick="preparePrint()" title="Imprimir"><i class="fas fa-print"></i></button>
                     </div>
                 </div>
@@ -469,6 +470,10 @@
             </div>
 
             <div class="lyrics-container" id="lyrics-container"></div>
+			<!-- BOT¨®N FLOTANTE PARA SALIR DE PANTALLA COMPLETA (ESCENARIO) -->
+            <button class="modal-close-x" id="btn-close-theater" onclick="toggleTheaterMode()" style="display: none; top: 15px 
+			!important; right: 15px !important; background: var(--primary); z-index: 102; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);"><i 
+			class="fas fa-compress"></i></button>
 <!-- INDICADOR DE PÃGINAS DINÃMICO -->
             <!-- NAVEGACIÃ“N DEL SETLIST -->
             <div id="setlist-nav" class="setlist-nav-bar" style="display:none;">

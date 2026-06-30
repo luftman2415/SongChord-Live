@@ -575,6 +575,10 @@ function closeSong() {
         wakeLock.release().then(() => { wakeLock = null; });
     }
     
+	// Desactivar el Modo Escenario si estaba activo para no heredar el estado en la siguiente canción
+    if (isTheaterModeActive) {
+        toggleTheaterMode();
+    }
     // 3. Volvemos primero a la vista de la lista de la que veníamos
     switchView(lastListView, true);
 
@@ -2009,4 +2013,28 @@ async function saveNewSong() {
         console.error("Error al guardar canción:", e);
         showToast("Error de conexión al guardar canción", "error");
     }
+}
+
+// --- MOTOR DE CONTROL DE PANTALLA COMPLETA (MODO ESCENARIO ZEN) ---
+let isTheaterModeActive = false;
+
+function toggleTheaterMode() {
+    const songView = document.getElementById('song-view');
+    const btnClose = document.getElementById('btn-close-theater');
+    if (!songView || !btnClose) return;
+
+    isTheaterModeActive = !isTheaterModeActive;
+
+    if (isTheaterModeActive) {
+        songView.classList.add('theater-mode');
+        btnClose.style.display = 'flex';
+        showToast("Modo Escenario Activado", "success");
+    } else {
+        songView.classList.remove('theater-mode');
+        btnClose.style.display = 'none';
+        showToast("Modo Estándar Restaurado", "info");
+    }
+
+    // Forzar recalculo de indicador de página para columnas
+    setTimeout(updatePageIndicator, 150);
 }
