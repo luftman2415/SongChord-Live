@@ -1186,17 +1186,22 @@ body.theme-ocean .notation-option span {
 .lyrics-container.musician-mode.double-column {
     display: block !important;
     column-count: 2 !important; /* Forzamos exactamente 2 columnas en pantalla */
-    column-gap: 50px !important; /* Aumentado a 50px para evitar sangrado de acordes largos entre columnas */
-    column-rule: 2px solid var(--primary) !important; /* Línea sólida de alto contraste */
-    height: calc(100dvh - 135px) !important; /* Altura estricta para forzar paginación horizontal */
+    column-gap: 50px !important; /* Separación amplia de alto contraste */
+    column-rule: 2px solid var(--primary) !important; /* Línea divisoria sólida */
+    
+    /* REDISEÑO FLEXBOX DINÁMICO: El navegador calcula la altura exacta sin cortes */
+    flex: 1 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    
     overflow-y: hidden !important;
-    overflow-x: auto !important; /* Habilitamos el desplazamiento horizontal */
+    overflow-x: auto !important; /* Paginación horizontal activa */
     padding-bottom: 25px !important;
     padding-top: 10px !important;
     
-    /* ALTA OPTIMIZACIÓN DE ACCESIBILIDAD Y LECTURA (Estilo WorshipTools) */
-    font-family: 'Inter', sans-serif !important; /* Comprime el ancho de las letras para evitar que se dividan sílabas */
-    word-break: keep-all !important; /* Impide estrictamente que las palabras se corten a la mitad */
+    /* ALTA OPTIMIZACIÓN DE ACCESIBILIDAD Y LECTURA */
+    font-family: 'Inter', sans-serif !important;
+    word-break: keep-all !important;
     overflow-wrap: break-word !important;
 }
 
@@ -1214,11 +1219,6 @@ body.theme-ocean .notation-option span {
         column-gap: 25px !important; /* Ajuste óptimo para celulares */
         padding: 15px 12px 25px 12px !important; /* Ajuste fino de bordes laterales */
     }
-}
-
-/* Ajuste dinámico de altura cuando el menú de navegación "Siguiente/Anterior" está visible */
-.lyrics-container.musician-mode.double-column.with-nav {
-    height: calc(100dvh - 200px) !important; /* Reduce la altura para que no se esconda texto bajo la barra */
 }
 
 /* Evitar que líneas individuales de acordes se corten o dividan entre columnas */
@@ -1240,7 +1240,6 @@ body.theme-ocean .notation-option span {
     line-height: 1.2 !important; /* Evita heredar el interlineado de 2.8 de los acordes */
     break-after: avoid;
 }
-
 /* --- ESTILO DE LA BARRA DE DESPLAZAMIENTO HORIZONTAL (PÁGINAS) --- */
 .lyrics-container.musician-mode.double-column::-webkit-scrollbar {
     height: 6px !important;
@@ -1775,4 +1774,102 @@ body.theme-ocean .quick-chord-select {
     text-transform: uppercase;
     font-size: 0.85rem;
     letter-spacing: 1.5px;
+}
+
+/* --- CAJA DE NOTAS DE INTERPRETACIÓN DELGADA Y DE ALTO CONTRASTE (ESTILO COMPACTO BANNER) --- */
+.lyrics-note-card {
+    background: #fff9db !important;
+    border-left: 4px solid #f59e0b !important;
+    padding: 8px 12px !important; /* Padding ultra-delgado vertical y horizontal */
+    margin: 10px 25px 15px 25px !important; /* Margen simétrico para flotar de forma contenida lejos de los bordes de la pantalla */
+    border-radius: 8px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 0.8rem !important; /* Tipografía idéntica a tu captura 3 */
+    color: #856404 !important;
+    line-height: 1.4 !important;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.05) !important;
+    display: flex; /* Flexbox fluido en una sola fila horizontal */
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 15px !important;
+    transition: all 0.3s ease;
+}
+
+.note-card-content {
+    font-weight: 700 !important;
+    flex: 1;
+    white-space: pre-wrap; /* Respeta saltos de línea de la nota */
+}
+
+.note-card-content i {
+    margin-right: 4px;
+    color: #f59e0b;
+}
+
+.note-close-btn {
+    background: none !important;
+    border: none !important;
+    color: #b27b00 !important;
+    font-weight: 800 !important;
+    font-size: 0.68rem !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    text-transform: uppercase !important;
+    transition: all 0.2s !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    flex-shrink: 0 !important; /* Evita que el botón de ocultar colapse */
+}
+
+.note-close-btn:hover {
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #856404 !important;
+}
+
+/* --- BOTÓN FLOTANTE INDICADOR DE NOTA --- */
+.note-floating-indicator {
+    background: #f59e0b !important;
+    color: white !important;
+    border: 1.5px solid white !important;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+    margin: 10px 25px 15px 25px !important; /* Margen idéntico para que flote alineado con la letra */
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: fit-content;
+}
+
+.note-floating-indicator:hover {
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+}
+
+.note-floating-indicator:active {
+    transform: scale(0.95);
+}
+
+/* --- OPTIMIZACIÓN EXCLUSIVA DE MÁRGENES DE NOTA EN CELULARES (MÓVIL ONLY) --- */
+@media (max-width: 500px) {
+    .lyrics-note-card, 
+    .note-floating-indicator {
+        margin: 8px 15px 15px 15px !important; /* Alineación perfecta con el espaciado de 15px del teléfono */
+    }
+}
+
+/* Ocultar el texto de "Ocultar" en pantallas de celulares extremadamente angostas */
+@media (max-width: 360px) {
+    .hide-text-mobile {
+        display: none !important;
+    }
+    .note-close-btn {
+        padding: 4px !important;
+    }
 }

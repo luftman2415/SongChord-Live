@@ -473,10 +473,19 @@ function renderLyrics() {
 
 // Si hay una nota guardada, la mostramos en una cajita elegante arriba de la letra
     const savedNote = localStorage.getItem('note_global_' + currentSong.ID);
+    const noteBox = document.getElementById('lyrics-note-box');
+    const noteText = document.getElementById('lyrics-note-text');
+    const indicator = document.getElementById('lyrics-note-indicator');
+
     if (savedNote && savedNote.trim() !== "") {
-        processed = `<div style="background: #fff9db; border-left: 4px solid #f59e0b; padding: 12px; margin-bottom: 20px; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #856404; line-height: 1.4;">
-            <i class="fas fa-info-circle"></i> <b>NOTA:</b> ${savedNote}
-        </div>` + processed;
+        if (noteText) noteText.innerHTML = `<b>NOTA:</b> ${savedNote}`;
+        const isHidden = (sessionStorage.getItem('note_hidden_' + currentSong.ID) === 'true');
+        
+        if (noteBox) noteBox.style.display = isHidden ? 'none' : 'flex';
+        if (indicator) indicator.style.display = isHidden ? 'flex' : 'none';
+    } else {
+        if (noteBox) noteBox.style.display = 'none';
+        if (indicator) indicator.style.display = 'none';
     }
     container.innerHTML = processed;
     setTimeout(updatePageIndicator, 150); // Retraso de seguridad para que el navegador calcule el scrollWidth real
@@ -2191,4 +2200,25 @@ function insertTextAtCursor(textareaId, text) {
 function changeMinistryMonth(delta) {
     currentCalDate.setMonth(currentCalDate.getMonth() + delta);
     renderMinistryGrid();
+}
+
+// --- CONTROLADOR DE VISIBILIDAD DE LA NOTA DE INTERPRETACIÓN EN EL VISOR ---
+function toggleNoteVisibility(hide) {
+    const noteBox = document.getElementById('lyrics-note-box');
+    const indicator = document.getElementById('lyrics-note-indicator');
+    
+    if (!noteBox || !indicator || !currentSong) return;
+
+    if (hide) {
+        noteBox.style.display = 'none';
+        indicator.style.display = 'flex';
+        sessionStorage.setItem('note_hidden_' + currentSong.ID, 'true');
+    } else {
+        noteBox.style.display = 'flex'; // Cambiado de 'block' a 'flex' para no deformar el contenedor horizontal
+        indicator.style.display = 'none';
+        sessionStorage.setItem('note_hidden_' + currentSong.ID, 'false');
+    }
+
+    // Forzar recalculo de indicador de página para el visor de columnas si está activo
+    setTimeout(updatePageIndicator, 150);
 }

@@ -610,6 +610,20 @@
                 </div>
             </div>
 
+            <!-- NOTAS DE INTERPRETACIÓN FLOTANTES COMPACTAS (FUERA DE LAS COLUMNAS) -->
+            <div id="lyrics-note-box" class="lyrics-note-card" style="display: none;">
+                <div class="note-card-content">
+                    <i class="fas fa-info-circle"></i> <span id="lyrics-note-text"></span>
+                </div>
+                <button type="button" class="note-close-btn" onclick="toggleNoteVisibility(true)" title="Ocultar Nota">
+                    <i class="fas fa-eye-slash"></i> <span class="hide-text-mobile">Ocultar</span>
+                </button>
+            </div>
+            
+            <button type="button" id="lyrics-note-indicator" class="note-floating-indicator" style="display: none;" onclick="toggleNoteVisibility(false)">
+                <i class="fas fa-sticky-note"></i> Ver Nota
+            </button>
+
             <div class="lyrics-container" id="lyrics-container"></div>
 			<!-- BOT  N FLOTANTE PARA SALIR DE PANTALLA COMPLETA (ESCENARIO) -->
             <button class="modal-close-x" id="btn-close-theater" onclick="toggleTheaterMode()" style="display: none; bottom: 20px !important; right: 20px !important; top: auto !important; left: auto !important; background: var(--primary); z-index: 102; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);"><i class="fas fa-compress"></i></button>
