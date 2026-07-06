@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzHESLkvNtdmxnEbrlJFHVboFf2DU9Tl6UZX9aYx2qkXxHZk4hclIjKpOrz_I_J5zQ/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyaDMNWWTV6vtGqPjKz1xBY8AOAObmu4JLr2BnfP_QZZx4q77BsjKMRytAoaRBEvQ-U/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
@@ -75,7 +75,8 @@ async function initApp() {
                 ID: find('ID').toString().trim(), Titulo: find('Titulo') || "Sin Título",
                 Artista: find('Artista') || "Desconocido", Tono: find('Tono') || "C",
                 BPM: find('BPM') || 0, Letra_Musicos: find('Letra Musicos') || find('Musicos') || "",
-                Letra_Voces: find('Letra Voces') || find('Voces') || ""
+                Letra_Voces: find('Letra Voces') || find('Voces') || "",
+                Youtube: find('Youtube') || find('YouTube') || ""
             };
         });
 
@@ -425,6 +426,16 @@ async function openSongByID(id) {
         toolbar.scrollLeft = 0;
     }
     
+// Control dinámico de presencia del botón de YouTube
+    const btnYoutube = document.getElementById('btn-youtube-link');
+    if (btnYoutube) {
+        if (currentSong.Youtube && currentSong.Youtube.trim() !== "") {
+            btnYoutube.style.display = 'inline-flex';
+        } else {
+            btnYoutube.style.display = 'none';
+        }
+    }
+
     // Encendemos el metrónomo
     startMetronome(currentSong.BPM);
     applyCustomColors(); // Inyectar colores personalizados guardados
@@ -1901,6 +1912,7 @@ function openEditSongModal() {
     // Cargar de forma independiente ambos campos de texto en el editor
     document.getElementById('edit-song-lyrics-musician').value = currentSong.Letra_Musicos || "";
     document.getElementById('edit-song-lyrics-voices').value = currentSong.Letra_Voces || "";
+    document.getElementById('edit-song-youtube').value = currentSong.Youtube || "";
     
     document.getElementById('edit-song-modal').style.display = 'flex';
     history.pushState({ modal: 'edit-song-modal' }, "");
@@ -1930,6 +1942,7 @@ async function saveSongEdits() {
     // Leer de forma independiente ambos campos de texto
     const letra_musicos = document.getElementById('edit-song-lyrics-musician').value;
     const letra_voces = document.getElementById('edit-song-lyrics-voices').value;
+    const youtube = document.getElementById('edit-song-youtube').value.trim(); // Captura del enlace de YouTube
 
     // Validación estricta contra envíos vacíos o incompletos al editar
     if (!titulo || titulo.length < 2) return showToast("El título de la canción debe tener al menos 2 letras", "error");
@@ -1944,6 +1957,7 @@ async function saveSongEdits() {
     currentSong.BPM = bpm ? parseInt(bpm) : 0;
     currentSong.Letra_Musicos = letra_musicos;
     currentSong.Letra_Voces = letra_voces;
+    currentSong.Youtube = youtube; // Sincronización local inmediata
     
     // Sincronizar en la base de datos principal en memoria
     const dbSong = songsDatabase.find(s => s.ID.toString().trim() === currentSong.ID.toString().trim());
@@ -1954,6 +1968,7 @@ async function saveSongEdits() {
         dbSong.BPM = bpm ? parseInt(bpm) : 0;
         dbSong.Letra_Musicos = letra_musicos;
         dbSong.Letra_Voces = letra_voces;
+        dbSong.Youtube = youtube;
     }
 
     // Refrescar el visualizador en vivo al instante
@@ -1980,7 +1995,8 @@ async function saveSongEdits() {
                 tono: tono,
                 bpm: bpm ? parseInt(bpm) : 0,
                 letra_musicos: currentSong.Letra_Musicos,
-                letra_voces: currentSong.Letra_Voces
+                letra_voces: currentSong.Letra_Voces,
+                youtube: youtube // Envío de columna H integrado con éxito
             })
         });
         showToast("¡Cambios guardados en la nube!", "success");
@@ -2003,6 +2019,7 @@ function openAddSongModal() {
     document.getElementById('add-song-bpm').value = "";
     document.getElementById('add-song-lyrics-musician').value = "";
     document.getElementById('add-song-lyrics-voices').value = "";
+    document.getElementById('add-song-youtube').value = "";
 
     document.getElementById('add-song-modal').style.display = 'flex';
     history.pushState({ modal: 'add-song-modal' }, "");
@@ -2029,6 +2046,7 @@ async function saveNewSong() {
     const bpm = document.getElementById('add-song-bpm').value;
     const letra_musicos = document.getElementById('add-song-lyrics-musician').value;
     const letra_voces = document.getElementById('add-song-lyrics-voices').value;
+    const youtube = document.getElementById('add-song-youtube').value.trim(); // Captura del enlace multimedia
 
     // Validación estricta de seguridad contra envíos vacíos o incompletos
     if (!titulo || titulo.length < 2) return showToast("El título de la canción debe tener al menos 2 letras", "error");
@@ -2045,7 +2063,8 @@ async function saveNewSong() {
         Tono: tono,
         BPM: bpm ? parseInt(bpm) : 0,
         Letra_Musicos: letra_musicos,
-        Letra_Voces: letra_voces
+        Letra_Voces: letra_voces,
+        Youtube: youtube // Sincronización local inmediata
     };
 
     // Insertar localmente de inmediato para previsualización instantánea
@@ -2067,7 +2086,8 @@ async function saveNewSong() {
                 tono: tono,
                 bpm: bpm ? parseInt(bpm) : 0,
                 letra_musicos: letra_musicos,
-                letra_voces: letra_voces
+                letra_voces: letra_voces,
+                youtube: youtube // Envío de columna H integrado con éxito
             })
         });
         showToast("¡Nueva canción guardada con éxito!", "success");
@@ -2221,4 +2241,11 @@ function toggleNoteVisibility(hide) {
 
     // Forzar recalculo de indicador de página para el visor de columnas si está activo
     setTimeout(updatePageIndicator, 150);
+}
+
+// --- MANEJADOR PARA ABRIR ENLACE DE YOUTUBE ---
+function openYouTubeLink() {
+    if (currentSong && currentSong.Youtube && currentSong.Youtube.trim() !== "") {
+        window.open(currentSong.Youtube, '_blank');
+    }
 }

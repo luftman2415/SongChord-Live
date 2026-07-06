@@ -393,6 +393,11 @@
                 <textarea id="add-song-lyrics-voices" style="width: 100%; height: 110px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; font-size: 0.8rem; resize: none; outline:none;" placeholder="Ej: Ven espíritu ven..."></textarea>
             </div>
 
+<div class="input-group">
+                <label><i class="fab fa-youtube" style="color: #ff0000;"></i> Enlace de YouTube (Opcional)</label>
+                <input type="text" id="add-song-youtube" placeholder="Ej: https://www.youtube.com/watch?v=...">
+            </div>
+
             <div class="modal-actions">
                 <button class="cancel-btn" onclick="closeAddSongModal()">Cancelar</button>
                 <button class="save-btn" style="background: #10b981;" onclick="saveNewSong()">Guardar Canción</button>
@@ -508,6 +513,11 @@
                 <textarea id="edit-song-lyrics-voices" style="width: 100%; height: 110px; padding: 10px; border-radius: 10px; border: 1px solid #ddd; font-family: inherit; font-size: 0.8rem; resize: none; outline:none;" placeholder="Ej: Ven espíritu ven..."></textarea>
             </div>
 
+<div class="input-group">
+                <label><i class="fab fa-youtube" style="color: #ff0000;"></i> Enlace de YouTube (Opcional)</label>
+                <input type="text" id="edit-song-youtube" placeholder="Ej: https://www.youtube.com/watch?v=...">
+            </div>
+
             <div class="modal-actions">
                 <button class="cancel-btn" onclick="closeEditSongModal()">Cancelar</button>
                 <button class="save-btn" style="background: var(--primary);" onclick="saveSongEdits()">Guardar Cambios</button>
@@ -598,6 +608,7 @@
                         <button class="circle-btn" onclick="openInterpretNote()" title="Notas"><i class="fas fa-sticky-note"></i></button>
                         <button class="circle-btn" id="btn-repertoire" onclick="toggleRepertoireFromView()" title="Mi Repertorio"><i class="far fa-folder" id="view-repertoire-icon"></i></button>
                         <button class="circle-btn" onclick="openEditSongPasswordModal()" title="Editar Letra/Acordes/Metadatos"><i class="fas fa-edit"></i></button>
+<button class="circle-btn" id="btn-youtube-link" onclick="openYouTubeLink()" title="Escuchar en YouTube" style="display: none; color: #ff0000 !important;"><i class="fab fa-youtube"></i></button>
                         <button class="circle-btn" onclick="toggleTheaterMode()" title="Pantalla Completa (Escenario)"><i class="fas fa-expand"></i></button>
                         <button class="circle-btn" onclick="preparePrint()" title="Imprimir"><i class="fas fa-print"></i></button>
                     </div>
