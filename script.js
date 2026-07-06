@@ -35,6 +35,7 @@ let currentTitleColor = localStorage.getItem('customTitleColor') || ''; // Color
 let currentTextColor = localStorage.getItem('customTextColor') || ''; // Color de texto activo
 let lastListView = 'home-view'; // Recordará si venías de Favoritos, Repertorio o Roles
 let wakeLock = null; // Protector de pantalla encendida
+let currentCalDate = new Date(); // Guardará el mes/año seleccionado en el calendario ministerial
 let passwordSuccessAction = 'add'; // Determina si la clave exitosa abre la ventana de 'add' (crear) o 'edit' (editar)
 const scale = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -1329,12 +1330,11 @@ function showMinistrySchedule() {
 
 function renderMinistryGrid() {
     const container = document.getElementById('ministry-grid-container');
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth();
+    const year = currentCalDate.getFullYear();
+    const month = currentCalDate.getMonth();
     
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    document.getElementById('current-month-label').innerText = `${meses[month]} ${year}`;
+    document.getElementById('current-month-label').innerText = `${meses[month].toUpperCase()} ${year}`;
 
     let html = "";
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -1983,6 +1983,9 @@ async function saveSongEdits() {
 
 // --- MOTOR DE CREACIÓN DE NUEVAS CANCIONES (ESCRITURA EN HOJA 1) ---
 function openAddSongModal() {
+// Resetear la barra de desplazamiento del modal arriba del todo para mayor comodidad (Corrección)
+    const modalContent = document.querySelector('#add-song-modal .modal-content');
+    if (modalContent) modalContent.scrollTop = 0;
     // Limpiamos los campos antes de abrir
     document.getElementById('add-song-title').value = "";
     document.getElementById('add-song-artist').value = "";
@@ -2182,4 +2185,10 @@ function insertTextAtCursor(textareaId, text) {
     
     // Devolver el enfoque a la caja de texto para seguir escribiendo sin interrupciones
     textarea.focus();
+}
+
+// --- CAMBIAR INTERACTIVAMENTE EL MES DEL CALENDARIO MINISTERIAL ---
+function changeMinistryMonth(delta) {
+    currentCalDate.setMonth(currentCalDate.getMonth() + delta);
+    renderMinistryGrid();
 }

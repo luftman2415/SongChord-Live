@@ -217,9 +217,13 @@
             <header class="header-main song-header">
                 <button class="back-btn" onclick="goToDashboard()"><i class="fas fa-home"></i></button>
                 <div class="header-info">
-                    <h2>Programación Mensual</h2>
-                    <p id="current-month-label">Junio 2026</p>
-                </div>
+                        <h2>Programación Mensual</h2>
+                        <div class="calendar-nav-row">
+                            <button class="cal-nav-arrow" onclick="changeMinistryMonth(-1)" title="Mes Anterior"><i class="fas fa-chevron-left"></i></button>
+                            <p id="current-month-label">Julio 2026</p>
+                            <button class="cal-nav-arrow" onclick="changeMinistryMonth(1)" title="Siguiente Mes"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
             </header>
             
             <div class="content-padding">
