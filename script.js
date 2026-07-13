@@ -714,10 +714,13 @@ function closeServiceModal() {
 }
 
 function searchSongsForModal() {
-    const term = document.getElementById('modal-song-search').value.toLowerCase();
+    const term = cleanText(document.getElementById('modal-song-search').value);
     const resultsDiv = document.getElementById('modal-search-results');
     if (term.length < 2) { resultsDiv.style.display = 'none'; return; }
-    const filtered = songsDatabase.filter(s => s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term));
+    const filtered = songsDatabase.filter(s => 
+        cleanText(s.Titulo).includes(term) || 
+        cleanText(s.Artista).includes(term)
+    );
     resultsDiv.style.display = filtered.length > 0 ? 'block' : 'none';
     resultsDiv.innerHTML = filtered.map(s => `<div class="modal-search-item" onclick="addSongToService('${s.ID}', '${s.Titulo.replace(/'/g, "\\'")}')"><span>${s.Titulo}</span><small>${s.Artista}</small></div>`).join('');
 }
@@ -753,10 +756,13 @@ async function saveNewService() {
     } catch (e) { showToast("Error al guardar", "error"); }
 }
 
-// 10. BUSCADOR PRINCIPAL
+// 10. BUSCADOR PRINCIPAL (FLEXIBLE CON TILDES Y MAYÚSCULAS)
 document.getElementById('search-input').oninput = (e) => {
-    const term = e.target.value.toLowerCase();
-    const filtered = currentSongList.filter(s => s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term));
+    const term = cleanText(e.target.value);
+    const filtered = currentSongList.filter(s => 
+        cleanText(s.Titulo).includes(term) || 
+        cleanText(s.Artista).includes(term)
+    );
     renderSongList(filtered);
 };
 
@@ -1109,12 +1115,12 @@ function shareSetlist() {
 
 // FUNCIÓN PARA BUSCAR DENTRO DE FAVORITOS
 function filterFavorites() {
-    const term = document.getElementById('search-favorites').value.toLowerCase();
+    const term = cleanText(document.getElementById('search-favorites').value);
     
     // Filtramos solo entre las canciones que son favoritas
     const filteredFavs = songsDatabase.filter(s => 
         favorites.includes(s.ID) && 
-        (s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term))
+        (cleanText(s.Titulo).includes(term) || cleanText(s.Artista).includes(term))
     );
     
     renderSongList(filteredFavs, 'favorites-list-container');
@@ -1644,10 +1650,10 @@ function showRepertoire() {
 }
 
 function filterRepertoire() {
-    const term = document.getElementById('search-repertoire').value.toLowerCase();
+    const term = cleanText(document.getElementById('search-repertoire').value);
     const filteredReps = songsDatabase.filter(s => 
         repertoire.includes(s.ID) && 
-        (s.Titulo.toLowerCase().includes(term) || s.Artista.toLowerCase().includes(term))
+        (cleanText(s.Titulo).includes(term) || cleanText(s.Artista).includes(term))
     );
     renderSongList(filteredReps);
 }
@@ -2248,4 +2254,12 @@ function openYouTubeLink() {
     if (currentSong && currentSong.Youtube && currentSong.Youtube.trim() !== "") {
         window.open(currentSong.Youtube, '_blank');
     }
+}
+
+// --- FUNCIÓN CENTRALIZADA PARA IGNORAR TILDES Y MAYÚSCULAS EN BUSCADORES ---
+function cleanText(text) {
+    if (!text) return "";
+    // El método normalize("NFD") separa la letra de su tilde (ej: "í" -> "i" + tilde combinada)
+    // El método replace(/[\u0300-\u036f]/g, "") remueve la tilde separada, dejando solo la letra base de forma limpia
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
