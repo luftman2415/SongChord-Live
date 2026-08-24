@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyaDMNWWTV6vtGqPjKz1xBY8AOAObmu4JLr2BnfP_QZZx4q77BsjKMRytAoaRBEvQ-U/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyy6Q4cOuYA2KRlKlihzbEgw0YiZ6Vr8Z2W72N_BUBuE1S10Ws7N0SBb_5gFTtl_lA/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
@@ -111,8 +111,7 @@ async function initApp() {
         }
 
         renderServices();
-        // Autopurga limpia de servicios vencidos en segundo plano (ejecución única, libre de bloqueos)
-        purgeExpiredServices();
+        
     } catch (e) {
         console.error("Error en carga:", e);
         showToast("Error de sincronización", "error");
@@ -881,17 +880,23 @@ async function executeDelete() {
     }
     
     // GUARDAMOS LOS DATOS antes de cerrar el modal
-    const datosABorrar = serviceToDelete;
-    const nombreEnviado = getServiceNombre(datosABorrar);
+            const datosABorrar = serviceToDelete;
+            const nombreKey = Object.keys(datosABorrar).find(k => k.toLowerCase().includes('nombre'));
+            const nombreEnviado = datosABorrar[nombreKey];
+            
+            // Buscamos también la fecha del servicio para garantizar una eliminación única
+            const fechaKey = Object.keys(datosABorrar).find(k => k.toLowerCase().includes('fecha'));
+            const fechaEnviada = datosABorrar[fechaKey];
 
-    // Ahora sí cerramos la ventana
-    document.getElementById('delete-confirm-modal').style.display = 'none';
-    showToast("Eliminando de la base de datos...", "info");
+            // Ahora sí cerramos la ventana
+            document.getElementById('delete-confirm-modal').style.display = 'none';
+            showToast("Eliminando de la base de datos...", "info");
 
-    const payload = {
-        action: 'delete',
-        nombre: nombreEnviado.toString()
-    };
+            const payload = {
+                action: 'delete',
+                nombre: nombreEnviado.toString(),
+                fecha: fechaEnviada.toString()
+            };
 
     try {
         await fetch(WEB_APP_URL, {
@@ -1528,54 +1533,6 @@ function applyThemeClass(themeName) {
 function revertThemeToSaved() {
     const savedTheme = localStorage.getItem('userTheme') || 'day';
     applyThemeClass(savedTheme);
-}
-
-// Función para depurar de forma segura todos los servicios vencidos en Google Sheets y localmente de fondo
-async function purgeExpiredServices() {
-    if (!servicesDatabase || servicesDatabase.length === 0) return;
-    
-    const expiredList = [];
-    const now = new Date();
-    
-    servicesDatabase.forEach(ser => {
-        const fechaRaw = getServiceFecha(ser);
-        if (fechaRaw) {
-            const serviceDate = new Date(fechaRaw);
-            // Si tiene más de 24 horas de vencido en total
-            if (now.getTime() - serviceDate.getTime() > 24 * 60 * 60 * 1000) {
-                const nombre = getServiceNombre(ser);
-                if (nombre) {
-                    expiredList.push(nombre.toString().trim());
-                }
-            }
-        }
-    });
-
-    if (expiredList.length === 0) return;
-
-    // Quitamos los vencidos de la memoria local de inmediato
-    servicesDatabase = servicesDatabase.filter(ser => {
-        const n = getServiceNombre(ser);
-        return !expiredList.includes(n.toString().trim());
-    });
-    
-    // Volvemos a pintar de inmediato la interfaz para que no haya retrasos visuales
-    renderServices();
-
-    // Enviamos silenciosamente las peticiones de borrado a Sheets secuencialmente
-    for (const nombre of expiredList) {
-        try {
-            console.log("Iniciando autopurga de servicio vencido: " + nombre);
-            await fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: JSON.stringify({ action: 'delete', nombre: nombre })
-            });
-            console.log("Servicio vencido '" + nombre + "' purgado de Google Sheets.");
-        } catch (e) {
-            console.error("Error al limpiar servicio de Sheets:", e);
-        }
-    }
 }
 
 // Función para sincronizar de manera forzada y amigable
