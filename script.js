@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyDz4QGt49jIYRHJVcCpBYhcjxgt_4wuw4tnq_crlE2GIKM2eDjK1WWsBgCjDLWBK4V/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwEr6eTo9HsKOHQBaZcm9GHuOqjEAkyG_hUS7HLor6yUuk4SLi8syf57xu0C5mjtufV/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
