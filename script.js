@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyy6Q4cOuYA2KRlKlihzbEgw0YiZ6Vr8Z2W72N_BUBuE1S10Ws7N0SBb_5gFTtl_lA/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzCYduJyNhUyufadZGwHeNLaYK_mqVu06z1WTL5qBABPDThqP1HPHegCt0nXtfPzi-H/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
@@ -1003,24 +1003,26 @@ function swapItems(fromIndex, toIndex) {
 async function saveNewOrderToExcel() {
     if (!activeServiceInfo) return;
 
-    // Buscamos el nombre del servicio actual de forma ultra-robusta
-    const nombreServicio = getServiceNombre(activeServiceInfo);
-    
-    // Unimos los IDs en el nuevo orden
-    const nuevosIds = currentServiceSongs.join(',');
+    // Buscamos el nombre y fecha del servicio actual de forma ultra-robusta
+           const nombreServicio = getServiceNombre(activeServiceInfo);
+           const fechaServicio = getServiceFecha(activeServiceInfo);
+           
+           // Unimos los IDs en el nuevo orden
+           const nuevosIds = currentServiceSongs.join(',');
 
-    showToast("Guardando orden...", "info");
+           showToast("Guardando orden...", "info");
 
-    try {
-        await fetch(WEB_APP_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({
-                action: 'update_order',
-                nombre: nombreServicio.toString(),
-                ids: nuevosIds
-            })
-        });
+           try {
+               await fetch(WEB_APP_URL, {
+                   method: 'POST',
+                   mode: 'no-cors',
+                   body: JSON.stringify({
+                       action: 'update_order',
+                       nombre: nombreServicio.toString(),
+                       fecha: fechaServicio.toString(),
+                       ids: nuevosIds
+                   })
+               });
         showToast("Orden guardado permanentemente", "success");
     } catch (e) {
         showToast("Error al guardar orden en la nube", "error");
@@ -1216,13 +1218,14 @@ async function updateServiceData() {
     showToast("Actualizando servicio...", "info");
 
     const payload = {
-        action: 'update_metadata',
-        old_name: getServiceNombre(activeServiceInfo).toString(),
-        nombre: name,
-        fecha: date,
-        ids: idsString,
-        lider: leader
-    };
+            action: 'update_metadata',
+            old_name: getServiceNombre(activeServiceInfo).toString(),
+            old_fecha: getServiceFecha(activeServiceInfo).toString(),
+            nombre: name,
+            fecha: date,
+            ids: idsString,
+            lider: leader
+        };
 
     try {
         await fetch(WEB_APP_URL, {
