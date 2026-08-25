@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzCYduJyNhUyufadZGwHeNLaYK_mqVu06z1WTL5qBABPDThqP1HPHegCt0nXtfPzi-H/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyDz4QGt49jIYRHJVcCpBYhcjxgt_4wuw4tnq_crlE2GIKM2eDjK1WWsBgCjDLWBK4V/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
@@ -884,9 +884,13 @@ async function executeDelete() {
             const nombreKey = Object.keys(datosABorrar).find(k => k.toLowerCase().includes('nombre'));
             const nombreEnviado = datosABorrar[nombreKey];
             
-            // Buscamos también la fecha del servicio para garantizar una eliminación única
+            // Buscamos la fecha del servicio para garantizar una eliminación única
             const fechaKey = Object.keys(datosABorrar).find(k => k.toLowerCase().includes('fecha'));
             const fechaEnviada = datosABorrar[fechaKey];
+
+            // Buscamos también el líder del servicio para resolver duplicados de horario
+            const liderKey = Object.keys(datosABorrar).find(k => k.toLowerCase().includes('lider') || k.toLowerCase().includes('líder') || k.toLowerCase().includes('director'));
+            const liderEnviado = liderKey ? datosABorrar[liderKey] : "";
 
             // Ahora sí cerramos la ventana
             document.getElementById('delete-confirm-modal').style.display = 'none';
@@ -895,7 +899,8 @@ async function executeDelete() {
             const payload = {
                 action: 'delete',
                 nombre: nombreEnviado.toString(),
-                fecha: fechaEnviada.toString()
+                fecha: fechaEnviada.toString(),
+                lider: liderEnviado.toString()
             };
 
     try {
@@ -1003,9 +1008,10 @@ function swapItems(fromIndex, toIndex) {
 async function saveNewOrderToExcel() {
     if (!activeServiceInfo) return;
 
-    // Buscamos el nombre y fecha del servicio actual de forma ultra-robusta
+    // Buscamos el nombre, fecha y líder del servicio actual de forma ultra-robusta
            const nombreServicio = getServiceNombre(activeServiceInfo);
            const fechaServicio = getServiceFecha(activeServiceInfo);
+           const liderServicio = getServiceLider(activeServiceInfo);
            
            // Unimos los IDs en el nuevo orden
            const nuevosIds = currentServiceSongs.join(',');
@@ -1020,6 +1026,7 @@ async function saveNewOrderToExcel() {
                        action: 'update_order',
                        nombre: nombreServicio.toString(),
                        fecha: fechaServicio.toString(),
+                       lider: liderServicio.toString(),
                        ids: nuevosIds
                    })
                });
@@ -1221,6 +1228,7 @@ async function updateServiceData() {
             action: 'update_metadata',
             old_name: getServiceNombre(activeServiceInfo).toString(),
             old_fecha: getServiceFecha(activeServiceInfo).toString(),
+            old_lider: getServiceLider(activeServiceInfo).toString(),
             nombre: name,
             fecha: date,
             ids: idsString,
