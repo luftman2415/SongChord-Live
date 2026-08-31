@@ -1,5 +1,5 @@
 // --- CONFIGURACIÓN ---
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzLZNdLq3fl8gEPOFFk6Hl6GM0Z4GnX6i4s0FAPKmQFRCVAeKaeAxjE9G-VkT3wXOiI/exec'; 
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxpn_Kc74x-VaafLjHPKkoU5REBNQfWQVHkJ-WG7CoZa3T8f-iY8Kodjlnqplu8Ykkn/exec'; 
 
 let favorites = JSON.parse(localStorage.getItem('songChordFavorites')) || [];
 let repertoire = JSON.parse(localStorage.getItem('songChordRepertoire')) || [];
@@ -76,7 +76,8 @@ async function initApp() {
                 Artista: find('Artista') || "Desconocido", Tono: find('Tono') || "C",
                 BPM: find('BPM') || 0, Letra_Musicos: find('Letra Musicos') || find('Musicos') || "",
                 Letra_Voces: find('Letra Voces') || find('Voces') || "",
-                Youtube: find('Youtube') || find('YouTube') || ""
+                Youtube: find('Youtube') || find('YouTube') || "",
+                Notas: find('Notas') || find('Nota') || ""
             };
         });
 
@@ -482,7 +483,7 @@ function renderLyrics() {
     }
 
 // Si hay una nota guardada, la mostramos en una cajita elegante arriba de la letra
-    const savedNote = localStorage.getItem('note_global_' + currentSong.ID);
+    const savedNote = currentSong.Notas || "";
     const noteBox = document.getElementById('lyrics-note-box');
     const noteText = document.getElementById('lyrics-note-text');
     const indicator = document.getElementById('lyrics-note-indicator');
@@ -1478,8 +1479,7 @@ window.onpopstate = function(event) {
 // --- FUNCIONES DE NOTAS E IMPRESIÓN ---
 function openInterpretNote() {
     if (!currentSong) return;
-    const noteID = 'note_global_' + currentSong.ID;
-    document.getElementById('interpret-note-text').value = localStorage.getItem(noteID) || "";
+    document.getElementById('interpret-note-text').value = currentSong.Notas || "";
     document.getElementById('note-modal').style.display = 'flex';
     // Avisamos al sistema que hay un cuadro abierto
     history.pushState({ modal: 'note-modal' }, "");
@@ -1494,21 +1494,44 @@ function closeNoteModal() {
     }
 }
 
-function saveInterpretNote() {
+async function saveInterpretNote() {
     if (!currentSong) return;
-    const noteID = 'note_global_' + currentSong.ID;
     const val = document.getElementById('interpret-note-text').value.trim();
 
+    // Actualización local inmediata para renderizado rápido en tu App
+    currentSong.Notas = val;
+    
+    // También actualizamos la base de datos cargada en memoria para que persista durante la sesión
+    const dbSong = songsDatabase.find(s => s.ID.toString().trim() === currentSong.ID.toString().trim());
+    if (dbSong) {
+        dbSong.Notas = val;
+    }
+
     if (val === "") {
-        localStorage.removeItem(noteID);
-        showToast("✨ Notas borradas.", "info");
+        showToast("✨ Nota eliminada localmente, guardando en la nube...", "info");
     } else {
-        localStorage.setItem(noteID, val);
-        showToast("✅ Nota guardada.", "success");
+        showToast("✅ Nota guardada localmente, guardando en la nube...", "info");
     }
 
     renderLyrics();
     closeNoteModal();
+
+    // Sincronizar permanentemente con Google Sheets en segundo plano sin interrumpir al usuario
+    try {
+        await fetch(WEB_APP_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({
+                action: 'update_song_note',
+                id: currentSong.ID.toString(),
+                notas: val
+            })
+        });
+        showToast("☁️ Nota guardada permanentemente en la nube", "success");
+    } catch (e) {
+        console.error("Error al sincronizar nota:", e);
+        showToast("Error de conexión al guardar nota en la nube", "error");
+    }
 }
 
 function preparePrint() {
