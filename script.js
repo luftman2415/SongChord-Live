@@ -92,7 +92,7 @@ async function initApp() {
             return dateA - dateB;
         });
 
-        // 3. CARGA DE PROGRAMACIÓN (HOJA 4) - ¡Aquí está la solución!
+        // 3. CARGA DE PROGRAMACIÓN (HOJA 4)
         if(data.programacion) {
             ministryData = {}; 
             data.programacion.forEach(row => {
@@ -100,7 +100,6 @@ async function initApp() {
                 let rawId = getV('SlotID');
                 
                 if(rawId) {
-                    // Si Google envía una fecha rara, la limpiamos a fondo
                     let cleanId = rawId.toString();
                     if (cleanId.includes("GMT") || cleanId.length > 15) {
                         let d = new Date(rawId);
@@ -111,11 +110,46 @@ async function initApp() {
             });
         }
 
+        // RESPALDO OFFLINE: Guardamos en local para emergencias sin conexión
+        localStorage.setItem('cached_songs', JSON.stringify(songsDatabase));
+        localStorage.setItem('cached_services', JSON.stringify(servicesDatabase));
+        localStorage.setItem('cached_ministry', JSON.stringify(ministryData));
+        if (data.bienvenida) {
+            localStorage.setItem('cached_welcome', JSON.stringify(data.bienvenida));
+        }
+
         renderServices();
         
     } catch (e) {
-        console.error("Error en carga:", e);
-        showToast("Error de sincronización", "error");
+        console.error("Error en carga, intentando cargar modo offline:", e);
+        
+        // Intentamos recuperar del respaldo local
+        const cachedSongs = localStorage.getItem('cached_songs');
+        const cachedServices = localStorage.getItem('cached_services');
+        const cachedMinistry = localStorage.getItem('cached_ministry');
+        const cachedWelcome = localStorage.getItem('cached_welcome');
+
+        if (cachedSongs && cachedServices) {
+            songsDatabase = JSON.parse(cachedSongs);
+            servicesDatabase = JSON.parse(cachedServices);
+            if (cachedMinistry) ministryData = JSON.parse(cachedMinistry);
+            
+            if (cachedWelcome) {
+                const filas = JSON.parse(cachedWelcome).filter(f => f[0] && f[0].toString().trim() !== "");
+                if (filas.length > 0) {
+                    const sel = filas[Math.floor(Math.random() * filas.length)];
+                    const elTitle = document.getElementById('welcome-text');
+                    const elSub = document.getElementById('welcome-subtext');
+                    if (elTitle) elTitle.innerText = sel[0];
+                    if (elSub) elSub.innerText = sel[1] || "Preparados para ministrar.";
+                }
+            }
+
+            renderServices();
+            showToast("⚠️ Sin conexión. Cargando base de datos sin conexión.", "info");
+        } else {
+            showToast("Error de sincronización y sin respaldo local", "error");
+        }
     }
 }
 
