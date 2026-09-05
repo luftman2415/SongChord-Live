@@ -85,10 +85,10 @@ async function initApp() {
         
         // Ordenar automáticamente los servicios por fecha de menor a mayor (más cercano primero)
         servicesDatabase.sort((a, b) => {
-            const dateA = new Date(getServiceFecha(a));
-            const dateB = new Date(getServiceFecha(b));
-            if (isNaN(dateA)) return 1;
-            if (isNaN(dateB)) return -1;
+            const dateA = parseDateRobust(getServiceFecha(a));
+            const dateB = parseDateRobust(getServiceFecha(b));
+            if (isNaN(dateA.getTime())) return 1;
+            if (isNaN(dateB.getTime())) return -1;
             return dateA - dateB;
         });
 
@@ -222,11 +222,13 @@ function renderServices() {
     const renderedCards = servicesDatabase.map((ser, i) => {
         const fechaRaw = getServiceFecha(ser);
         if (fechaRaw) {
-            const serviceDate = new Date(fechaRaw);
+            const serviceDate = parseDateRobust(fechaRaw);
             const now = new Date();
-            // Si el servicio tiene más de 24 horas de vencido, se autopurga visualmente de inmediato
-            if (now.getTime() - serviceDate.getTime() > 24 * 60 * 60 * 1000) {
-                return ""; // No renderiza nada para este servicio
+            if (!isNaN(serviceDate.getTime())) {
+                // Si el servicio tiene más de 24 horas de vencido, se autopurga visualmente de inmediato
+                if (now.getTime() - serviceDate.getTime() > 24 * 60 * 60 * 1000) {
+                    return ""; // No renderiza nada para este servicio
+                }
             }
         }
 
@@ -2287,4 +2289,36 @@ function cleanText(text) {
     // El método normalize("NFD") separa la letra de su tilde (ej: "í" -> "i" + tilde combinada)
     // El método replace(/[\u0300-\u036f]/g, "") remueve la tilde separada, dejando solo la letra base de forma limpia
     return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
+// TRADUCTOR DE TEXTO PARA QUE LAS FECHAS SE LEAN BIEN EN CUALQUIER NAVEGADOR SIN USAR MEMORIA CACHÉ
+function parseDateRobust(dateStr) {
+    if (!dateStr) return new Date(NaN);
+    
+    let clean = dateStr.trim().replace(/\s+/, 'T');
+    let parts = clean.split('T');
+    if (parts.length === 2) {
+        let timeParts = parts[1].split(':');
+        if (timeParts[0].length === 1) {
+            timeParts[0] = '0' + timeParts[0];
+            clean = parts[0] + 'T' + timeParts.join(':');
+        }
+    }
+    
+    let d = new Date(clean);
+    if (!isNaN(d.getTime())) return d;
+    
+    try {
+        let regexParts = dateStr.split(/[\sT:\-\/]+/);
+        if (regexParts.length >= 5) {
+            let yyyy = parseInt(regexParts[0]);
+            let mm = parseInt(regexParts[1]) - 1;
+            let dd = parseInt(regexParts[2]);
+            let hh = parseInt(regexParts[3]);
+            let min = parseInt(regexParts[4]);
+            return new Date(yyyy, mm, dd, hh, min);
+        }
+    } catch(e) {}
+    
+    return new Date(dateStr);
 }
